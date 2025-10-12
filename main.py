@@ -627,9 +627,14 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
             # Получаем ссылку на оплату
             payment_url = payment.confirmation.confirmation_url
             
-            payment_text = f"💳 <b>Оплата тарифа {tariff}</b>\n\n💰 Сумма: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n🔗 <b>Ссылка для оплаты:</b>\n{payment_url}\n\n📱 После оплаты ваш тариф будет автоматически активирован!"
+            payment_text = f"💳 <b>Оплата тарифа {tariff}</b>\n\n💰 Сумма: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n📱 После оплаты ваш тариф будет автоматически активирован!"
             
-            await callback.message.edit_text(payment_text)
+            # Создаем inline кнопку для оплаты
+            pay_button = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="💳 ОПЛАТИТЬ", url=payment_url)]
+            ])
+            
+            await callback.message.edit_text(payment_text, reply_markup=pay_button)
             await callback.answer()
         else:
             await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
@@ -669,12 +674,14 @@ async def handle_foreign_payment(callback: types.CallbackQuery, user_language: s
                     payment_url = data.get("confirmation_url")
                     
                     if payment_url:
-                        payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n💰 Сумма: {amount} USD\n🔗 <a href='{payment_url}'>Перейти к оплате</a>\n\nПосле успешной оплаты тариф активируется автоматически."
+                        payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n💰 Сумма: {amount} USD\n\nПосле успешной оплаты тариф активируется автоматически."
                         
-                        await callback.message.edit_text(
-                            payment_text,
-                            disable_web_page_preview=True
-                        )
+                        # Создаем inline кнопку для оплаты
+                        pay_button = InlineKeyboardMarkup(inline_keyboard=[
+                            [InlineKeyboardButton(text="💳 ОПЛАТИТЬ", url=payment_url)]
+                        ])
+                        
+                        await callback.message.edit_text(payment_text, reply_markup=pay_button)
                     else:
                         await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
                 else:
