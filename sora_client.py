@@ -93,6 +93,26 @@ def extract_user_from_param(param_str: str):
             user_id = param["user_id"]
             logging.info(f"✅ Found user_id in param root: {user_id}")
             return int(user_id)
+        
+        # Проверим param["param"] - там может быть JSON строка с user_id
+        if "param" in param and isinstance(param["param"], str):
+            try:
+                nested_param = json.loads(param["param"])
+                logging.info(f"🔍 Parsed nested param: {nested_param}")
+                
+                if "input" in nested_param and isinstance(nested_param["input"], dict):
+                    if "user_id" in nested_param["input"]:
+                        user_id = nested_param["input"]["user_id"]
+                        logging.info(f"✅ Found user_id in param.param.input: {user_id}")
+                        return int(user_id)
+                        
+                if "user_id" in nested_param:
+                    user_id = nested_param["user_id"]
+                    logging.info(f"✅ Found user_id in param.param root: {user_id}")
+                    return int(user_id)
+                    
+            except json.JSONDecodeError as e:
+                logging.warning(f"⚠️ Could not parse nested param: {e}")
             
         logging.warning(f"⚠️ user_id not found in param: {param}")
         return None
