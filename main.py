@@ -17,6 +17,7 @@ from yookassa import Configuration, Payment
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
 from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
+from examples import EXAMPLES, get_categories, get_examples_from_category, get_example
 
 # Импорт Sora client
 from sora_client import create_sora_task, extract_user_from_param
@@ -343,6 +344,10 @@ async def create_sora_video(description: str, orientation: str, user_id: int):
 user_waiting_for_support = set()
 user_waiting_for_video_orientation = {}
 
+# Состояния для системы примеров
+user_example_category = {}  # {user_id: category_name}
+user_example_index = {}     # {user_id: current_index}
+
 # === MAIN MENU ===
 # Функции меню перенесены в utils/keyboards.py
 
@@ -516,6 +521,45 @@ async def callback_handler(callback: types.CallbackQuery):
         user_language = user.get('language', 'en') if user else 'en'
         await handle_foreign_payment(callback, user_language)
     
+    # Обработка выбора категории примеров
+    elif callback.data.startswith("category_"):
+        category = callback.data.replace("category_", "")
+        user_example_category[user_id] = category
+        user_example_index[user_id] = 0
+        await show_example(callback, category, 0)
+    
+    # Обработка навигации по примерам
+    elif callback.data == "example_prev":
+        category = user_example_category.get(user_id)
+        if category:
+            examples = get_examples_from_category(category)
+            current_index = user_example_index.get(user_id, 0)
+            prev_index = (current_index - 1) % len(examples)
+            user_example_index[user_id] = prev_index
+            await show_example(callback, category, prev_index)
+    
+    elif callback.data == "example_next":
+        category = user_example_category.get(user_id)
+        if category:
+            examples = get_examples_from_category(category)
+            current_index = user_example_index.get(user_id, 0)
+            next_index = (current_index + 1) % len(examples)
+            user_example_index[user_id] = next_index
+            await show_example(callback, category, next_index)
+    
+    elif callback.data == "example_back_to_categories":
+        await show_categories(callback)
+    
+    elif callback.data == "example_create_video":
+        category = user_example_category.get(user_id)
+        current_index = user_example_index.get(user_id, 0)
+        if category:
+            example = get_example(category, current_index)
+            if example:
+                # Устанавливаем ориентацию и отправляем на создание видео
+                user_waiting_for_video_orientation[user_id] = "vertical"  # По умолчанию вертикальная
+                await handle_video_description_from_example(callback, example['description'])
+    
     await callback.answer()
 
 # === DEFAULT HANDLER ===
@@ -592,11 +636,19 @@ async def handle_text(message: types.Message):
             )
 
 async def handle_examples(message: types.Message, user_language: str):
-    """Обработка кнопки 'Примеры'"""
-    await message.answer(
-        get_text(user_language, "examples"),
-        reply_markup=main_menu(user_language)
-    )
+    """Обработка кнопки 'Примеры' - показывает категории"""
+    categories = get_categories()
+    
+    # Создаем inline клавиатуру с категориями
+    keyboard = []
+    for category in categories:
+        keyboard.append([InlineKeyboardButton(text=category, callback_data=f"category_{category}")])
+    
+    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+    
+    text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
+    
+    await message.answer(text, reply_markup=markup)
 
 async def handle_profile(message: types.Message, user_language: str):
     """Обработка кнопки 'Кабинет'"""
@@ -1129,6 +1181,112 @@ async def start_bot():
         import traceback
         logging.error(f"❌ Traceback: {traceback.format_exc()}")
         raise
+
+# === EXAMPLES SYSTEM FUNCTIONS ===
+
+async def show_categories(callback: types.CallbackQuery):
+    """Показать категории примеров"""
+    categories = get_categories()
+    
+    keyboard = []
+    for category in categories:
+        keyboard.append([InlineKeyboardButton(text=category, callback_data=f"category_{category}")])
+    
+    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+    
+    text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
+    
+    await callback.message.edit_text(text, reply_markup=markup)
+
+async def show_example(callback: types.CallbackQuery, category: str, index: int):
+    """Показать конкретный пример с навигацией"""
+    example = get_example(category, index)
+    if not example:
+        await callback.message.edit_text("❌ Пример не найден")
+        return
+    
+    examples = get_examples_from_category(category)
+    total_examples = len(examples)
+    
+    # Создаем навигационные кнопки
+    keyboard = [
+        [
+            InlineKeyboardButton(text="⏪ Назад", callback_data="example_prev"),
+            InlineKeyboardButton(text="▶️ Создать", callback_data="example_create_video"),
+            InlineKeyboardButton(text="⏩ Далее", callback_data="example_next")
+        ],
+        [InlineKeyboardButton(text="⏹️ Другой раздел", callback_data="example_back_to_categories")]
+    ]
+    
+    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+    
+    text = f"📚 <b>{category}</b>\n\n<b>{example['title']}</b>\n\n<code>{example['description']}</code>\n\n<i>{index + 1} из {total_examples}</i>"
+    
+    await callback.message.edit_text(text, reply_markup=markup)
+
+async def handle_video_description_from_example(callback: types.CallbackQuery, description: str):
+    """Создать видео из примера"""
+    user_id = callback.from_user.id
+    
+    # Проверяем пользователя и его видео
+    user = await get_user(user_id)
+    if not user:
+        await callback.message.edit_text("❌ Ошибка получения данных пользователя")
+        return
+    
+    user_language = user.get('language', 'en')
+    
+    # Проверяем количество видео
+    if user['videos_left'] <= 0:
+        await callback.message.edit_text(get_text(user_language, "no_videos_left"), reply_markup=tariff_selection(user_language))
+        return
+    
+    # Устанавливаем ориентацию и создаем видео
+    orientation = user_waiting_for_video_orientation.get(user_id, "vertical")
+    
+    try:
+        # Показываем сообщение о создании
+        creating_msg = await callback.message.edit_text(
+            get_text(user_language, "video_creating")
+        )
+        
+        # Списываем видео
+        await update_user_videos(user_id, user['videos_left'] - 1)
+        
+        # Создаем задачу в Sora
+        task_id, status = await create_sora_task(description, orientation, user_id=user_id)
+        
+        if task_id and status == "success":
+            # Показываем успешное создание задачи
+            await creating_msg.edit_text(
+                f"✅ <b>Задача отправлена в Sora 2!</b>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n\n⏳ Ожидайте уведомление когда видео будет готово"
+            )
+            
+            # Показываем меню
+            await callback.message.answer(
+                "🎬 Видео будет отправлено в этот чат автоматически",
+                reply_markup=main_menu(user_language)
+            )
+        else:
+            # Ошибка создания - возвращаем видео обратно
+            await update_user_videos(user_id, user['videos_left'])
+            
+            error_text = get_text(user_language, "video_error", videos_left=user['videos_left'])
+            await creating_msg.edit_text(error_text)
+            
+            # Показываем меню
+            await callback.message.answer(
+                get_text(user_language, "choose_action"),
+                reply_markup=main_menu(user_language)
+            )
+            
+    except Exception as e:
+        logging.error(f"❌ Error creating video from example: {e}")
+        
+        # Возвращаем видео обратно при любой ошибке
+        await update_user_videos(user_id, user['videos_left'])
+        
+        await callback.message.edit_text("❌ Произошла ошибка при создании видео. Попробуйте позже.")
 
 if __name__ == "__main__":
     asyncio.run(start_bot())
