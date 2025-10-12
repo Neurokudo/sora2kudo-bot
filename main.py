@@ -12,7 +12,7 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
-from utils.keyboards import main_menu, language_selection, orientation_menu
+from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
 
 # === CONFIGURATION ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
@@ -69,17 +69,17 @@ async def init_database():
             if not table_exists:
                 logging.info("📋 Creating table 'users'...")
                 await conn.execute('''
-                    CREATE TABLE users (
-                        id SERIAL PRIMARY KEY,
-                        user_id BIGINT UNIQUE,
-                        username TEXT,
-                        first_name TEXT,
-                        plan_name TEXT DEFAULT 'trial',
-                        videos_left INT DEFAULT 3,
-                        total_payments INT DEFAULT 0,
-                        language TEXT DEFAULT 'en',
-                        created_at TIMESTAMP DEFAULT NOW()
-                    )
+                            CREATE TABLE users (
+                                id SERIAL PRIMARY KEY,
+                                user_id BIGINT UNIQUE,
+                                username TEXT,
+                                first_name TEXT,
+                                plan_name TEXT DEFAULT 'Без тарифа',
+                                videos_left INT DEFAULT 0,
+                                total_payments INT DEFAULT 0,
+                                language TEXT DEFAULT 'en',
+                                created_at TIMESTAMP DEFAULT NOW()
+                            )
                 ''')
                 logging.info("✅ Table 'users' created successfully.")
             else:
@@ -110,9 +110,10 @@ async def get_user(user_id: int):
         logging.warning("⚠️ Database not available, returning default user data")
         return {
             'user_id': user_id,
-            'plan_name': 'trial',
-            'videos_left': 3,
-            'total_payments': 0
+            'plan_name': 'Без тарифа',
+            'videos_left': 0,
+            'total_payments': 0,
+            'language': 'en'
         }
         
     try:
@@ -321,6 +322,20 @@ async def callback_handler(callback: types.CallbackQuery):
             )
         )
     
+    # Обработка покупки тарифов
+    elif callback.data == "buy_trial":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await handle_payment(callback, "trial", 490, user_language)
+    elif callback.data == "buy_basic":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await handle_payment(callback, "basic", 1290, user_language)
+    elif callback.data == "buy_maximum":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await handle_payment(callback, "maximum", 2990, user_language)
+    
     await callback.answer()
 
 # === DEFAULT HANDLER ===
@@ -363,6 +378,8 @@ async def handle_text(message: types.Message):
         await cmd_help(message, user_language)
     elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
         await handle_language_selection(message)
+    elif text in [get_text(lang, "btn_buy_tariff") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_buy_tariff(message, user_language)
     else:
         # Если пользователь выбрал ориентацию, то это описание для видео
         if user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
@@ -491,6 +508,24 @@ async def handle_language_selection(message: types.Message):
         get_text('en', "choose_language"),  # Показываем на английском
         reply_markup=language_selection()
     )
+
+async def handle_buy_tariff(message: types.Message, user_language: str):
+    """Обработка кнопки покупки тарифа"""
+    tariff_text = get_text(user_language, "tariff_selection")
+    await message.answer(
+        tariff_text,
+        reply_markup=tariff_selection(user_language)
+    )
+
+async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int, user_language: str):
+    """Обработка покупки тарифа"""
+    user_id = callback.from_user.id
+    
+    # Пока что просто показываем сообщение о том, что оплата будет добавлена позже
+    payment_text = f"💳 <b>Покупка тарифа</b>\n\n🎬 Тариф: <b>{tariff}</b>\n💰 Цена: <b>{price} ₽</b>\n\n⚠️ Система оплаты будет добавлена позже.\nПока что вы можете тестировать бота бесплатно!"
+    
+    await callback.message.edit_text(payment_text)
+    await callback.answer()
 
 # === WEBHOOK HANDLERS ===
 async def handle_webhook(request):

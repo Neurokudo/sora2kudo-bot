@@ -11,6 +11,7 @@ def main_menu(language: str = "en") -> ReplyKeyboardMarkup:
         [KeyboardButton(text=get_text(language, "btn_create_video"))],
         [KeyboardButton(text=get_text(language, "btn_examples")), 
          KeyboardButton(text=get_text(language, "btn_profile"))],
+        [KeyboardButton(text=get_text(language, "btn_buy_tariff"))],
         [KeyboardButton(text=get_text(language, "btn_help")),
          KeyboardButton(text=get_text(language, "btn_language"))]
     ]
@@ -44,6 +45,30 @@ def orientation_menu(language: str = "en") -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text=get_text(language, "orientation_horizontal"), 
                 callback_data="orientation_horizontal"
+            )
+        ]
+    ])
+    return markup
+
+def tariff_selection(language: str = "en") -> InlineKeyboardMarkup:
+    """Клавиатура выбора тарифов для покупки"""
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_buy_trial"), 
+                callback_data="buy_trial"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_buy_basic"), 
+                callback_data="buy_basic"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_buy_maximum"), 
+                callback_data="buy_maximum"
             )
         ]
     ])

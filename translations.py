@@ -6,7 +6,7 @@
 LANG = {
     "ru": {
         # Основные сообщения
-        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой пакет:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\nЗдесь ты можешь создавать видео по описанию — просто напиши, что хочешь снять.\n\n💡 <b>Выбери действие:</b>",
+        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\nЗдесь ты можешь создавать видео по описанию — просто напиши, что хочешь снять.\n\n💡 <b>Выбери действие:</b>",
         "choose_action": "💡 <b>Выбери действие:</b>",
         "choose_language": "🌍 <b>Выберите язык:</b>",
         "lang_selected": "✅ <b>Язык изменён на Русский.</b>",
@@ -30,17 +30,24 @@ LANG = {
         # Создание видео
         "create_video": "🎬 <b>Создание видео</b>\n\n📐 Ориентация: <b>{orientation}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n\n✏️ <b>Опиши, что хочешь снять:</b>\nНапример: <code>Рыбаки вытаскивают сеть, в ней русалка</code>",
         "video_accepted": "🎬 <b>Принято описание!</b>\n\n📝 <b>Описание:</b> {description}\n📐 <b>Ориентация:</b> {orientation}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n⏳ Видео создается через Sora 2...\n📨 Результат будет отправлен сюда!",
-        "no_videos_left": "🚫 <b>У тебя закончились видео!</b>\n\n💳 Купи новый пакет в <b>💰 Кабинет</b>",
+        "no_videos_left": "🚫 <b>У тебя закончились видео!</b>\n\n💳 Купи новый тариф в <b>💰 Кабинет</b>",
         
         # Примеры
         "examples": "📘 <b>Примеры идей для видео:</b>\n\n🔹 Рыбаки вытаскивают сеть, в ней странное существо\n🔹 Грибники находят движущуюся массу под листьями\n🔹 Бабушка кормит капибару у окна, рассвет\n🔹 Советские рабочие открывают капсулу времени\n🔹 Дети находят портал в другой мир\n🔹 Старый дом с привидениями, ночь\n\n💡 <b>Теперь создавай свое видео!</b>",
         
         # Профиль
-        "profile": "💰 <b>Твой кабинет</b>\n\n👤 Имя: <b>{name}</b>\n📦 Пакет: <b>{plan}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n💳 Всего оплачено: <b>{payments} ₽</b>\n📅 Регистрация: <b>{date}</b>\n\n🔁 <b>Нужно больше видео?</b>\nВыбери пакет:\n🐣 Пробный — 3 видео → ₽490\n🎬 Базовый — 10 видео → ₽1 290\n🚀 Максимум — 30 видео → ₽2 990",
+        "profile": "💰 <b>Твой кабинет</b>\n\n👤 Имя: <b>{name}</b>\n📦 Тариф: <b>{plan}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n💳 Всего оплачено: <b>{payments} ₽</b>\n📅 Регистрация: <b>{date}</b>\n\n🔁 <b>Нужно больше видео?</b>\nВыбери тариф:\n🐣 Пробный — 3 видео → ₽490\n🎬 Базовый — 10 видео → ₽1 290\n🚀 Максимум — 30 видео → ₽2 990\n\n💳 <b>Кнопки покупки:</b>",
         
         # Помощь
         "help_text": "🧭 <b>Помощь</b>\n\nОпиши свою проблему, я постараюсь помочь скоро!",
         "support_sent": "✅ Сообщение отправлено. Я постараюсь ответить как можно скорее!",
+        
+        # Кнопки покупки тарифов
+        "btn_buy_trial": "🐣 Купить Пробный (₽490)",
+        "btn_buy_basic": "🎬 Купить Базовый (₽1 290)", 
+        "btn_buy_maximum": "🚀 Купить Максимум (₽2 990)",
+        "btn_buy_tariff": "💳 Купить тариф",
+        "tariff_selection": "💳 <b>Выберите тариф для покупки:</b>",
         
         # Общие фразы
         "use_buttons": "💡 Используй кнопки меню или выбери ориентацию видео!",
@@ -50,7 +57,7 @@ LANG = {
     
     "en": {
         # Основные сообщения
-        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your plan:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\nHere you can create videos from descriptions — just write what you want to film.\n\n💡 <b>Choose an action:</b>",
+        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\nHere you can create videos from descriptions — just write what you want to film.\n\n💡 <b>Choose an action:</b>",
         "choose_action": "💡 <b>Choose an action:</b>",
         "choose_language": "🌍 <b>Choose your language:</b>",
         "lang_selected": "✅ <b>Language set to English.</b>",
