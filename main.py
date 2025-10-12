@@ -299,6 +299,9 @@ async def create_sora_video(description: str, orientation: str, user_id: int):
                     
     except aiohttp.ClientError as e:
         logging.error(f"❌ Network error creating Sora video: {e}")
+        # Если это demo режим (нет API ключа), возвращаем demo_mode
+        if not SORA_API_KEY:
+            return None, "demo_mode"
         return None, "network_error"
     except Exception as e:
         logging.error(f"❌ Unexpected error creating Sora video: {e}")
@@ -642,13 +645,21 @@ async def handle_video_description(message: types.Message, user_language: str):
                 await asyncio.sleep(3)
                 await creating_msg.edit_text(
                     "🎬 <b>Демо режим</b>\n\n⚠️ Sora 2 API не настроен\n🔄 В реальной версии здесь будет ваше видео\n\n" +
-                    get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1),
+                    get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1)
+                )
+                # Отправляем меню отдельным сообщением
+                await message.answer(
+                    get_text(user_language, "choose_action"),
                     reply_markup=main_menu(user_language)
                 )
             else:
                 # Ошибка создания
                 await creating_msg.edit_text(
-                    get_text(user_language, "video_error", videos_left=user['videos_left'] - 1),
+                    get_text(user_language, "video_error", videos_left=user['videos_left'] - 1)
+                )
+                # Отправляем меню отдельным сообщением
+                await message.answer(
+                    get_text(user_language, "choose_action"),
                     reply_markup=main_menu(user_language)
                 )
                 # Возвращаем видео обратно
@@ -657,7 +668,11 @@ async def handle_video_description(message: types.Message, user_language: str):
     except Exception as e:
         logging.error(f"❌ Critical error in handle_video_description: {e}")
         await creating_msg.edit_text(
-            get_text(user_language, "video_error", videos_left=user['videos_left'] - 1),
+            get_text(user_language, "video_error", videos_left=user['videos_left'] - 1)
+        )
+        # Отправляем меню отдельным сообщением
+        await message.answer(
+            get_text(user_language, "choose_action"),
             reply_markup=main_menu(user_language)
         )
         # Возвращаем видео обратно
