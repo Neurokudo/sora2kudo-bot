@@ -28,6 +28,7 @@ TELEGRAM_MODE = os.getenv("TELEGRAM_MODE", "webhook")
 PORT = int(os.getenv("PORT", 8080))
 DATABASE_URL = os.getenv("DATABASE_URL")
 SUPPORT_CHAT_ID = os.getenv("SUPPORT_CHAT_ID", "-4863150171")
+logging.info(f"🆘 SUPPORT_CHAT_ID initialized: {SUPPORT_CHAT_ID} (type: {type(SUPPORT_CHAT_ID)})")
 
 # YooKassa configuration
 YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID")
@@ -514,6 +515,7 @@ async def handle_text(message: types.Message):
 
     # Если пользователь сейчас пишет в поддержку
     if user_id in user_waiting_for_support:
+        logging.info(f"🆘 User {user_id} is writing to support. SUPPORT_CHAT_ID: {SUPPORT_CHAT_ID}")
         username = message.from_user.username or "без ника"
         full_name = message.from_user.full_name
         chat_text = (
@@ -523,10 +525,13 @@ async def handle_text(message: types.Message):
             f"💬 Сообщение:\n{text}"
         )
         try:
+            logging.info(f"🆘 Sending support message to chat ID: {SUPPORT_CHAT_ID}")
             await bot.send_message(SUPPORT_CHAT_ID, chat_text, parse_mode="HTML")
+            logging.info(f"✅ Support message sent successfully to {SUPPORT_CHAT_ID}")
             await message.answer("✅ Сообщение отправлено. Я постараюсь ответить как можно скорее!")
         except Exception as e:
-            logging.error(f"Ошибка при отправке в поддержку: {e}")
+            logging.error(f"❌ Ошибка при отправке в поддержку: {e}")
+            logging.error(f"❌ SUPPORT_CHAT_ID: {SUPPORT_CHAT_ID}, Type: {type(SUPPORT_CHAT_ID)}")
             await message.answer("⚠️ Не удалось отправить сообщение. Попробуй позже.")
         user_waiting_for_support.remove(user_id)
         return
@@ -714,7 +719,10 @@ async def handle_video_description(message: types.Message, user_language: str):
 
 async def cmd_help(message: types.Message, user_language: str):
     """Обработка команды /help"""
-    user_waiting_for_support.add(message.from_user.id)
+    user_id = message.from_user.id
+    logging.info(f"🆘 User {user_id} clicked Help button. Adding to support queue.")
+    user_waiting_for_support.add(user_id)
+    logging.info(f"🆘 Users waiting for support: {user_waiting_for_support}")
     await message.answer(
         get_text(user_language, "help_text"),
         reply_markup=main_menu(user_language)
