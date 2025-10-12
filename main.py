@@ -30,6 +30,11 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 SUPPORT_CHAT_ID = os.getenv("SUPPORT_CHAT_ID", "-4863150171")
 logging.info(f"🆘 SUPPORT_CHAT_ID initialized: {SUPPORT_CHAT_ID} (type: {type(SUPPORT_CHAT_ID)})")
 
+if not SUPPORT_CHAT_ID:
+    logging.error("❌ SUPPORT_CHAT_ID is not set!")
+elif SUPPORT_CHAT_ID == "-4863150171":
+    logging.warning("⚠️ SUPPORT_CHAT_ID is using default value. Check Railway environment variables!")
+
 # YooKassa configuration
 YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID")
 YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY")
@@ -344,6 +349,9 @@ user_waiting_for_video_orientation = {}
 # === /start ===
 @dp.message(Command("start"))
 async def cmd_start(message: types.Message):
+    # Игнорируем команды из группы поддержки
+    if message.chat.id == int(SUPPORT_CHAT_ID):
+        return
     user_id = message.from_user.id
     username = message.from_user.username
     first_name = message.from_user.first_name
@@ -406,6 +414,9 @@ async def cmd_start(message: types.Message):
 # === /help ===
 @dp.message(Command("help"))
 async def cmd_help_command(message: types.Message):
+    # Игнорируем команды из группы поддержки
+    if message.chat.id == int(SUPPORT_CHAT_ID):
+        return
     user_id = message.from_user.id
     user = await get_user(user_id)
     user_language = user.get('language', 'en') if user else 'en'
@@ -510,6 +521,11 @@ async def callback_handler(callback: types.CallbackQuery):
 # === DEFAULT HANDLER ===
 @dp.message()
 async def handle_text(message: types.Message):
+    # Игнорируем сообщения из группы поддержки
+    if message.chat.id == int(SUPPORT_CHAT_ID):
+        logging.info(f"🆘 Ignoring message from support group: {message.chat.id}")
+        return
+    
     user_id = message.from_user.id
     text = message.text.strip()
 
@@ -526,12 +542,20 @@ async def handle_text(message: types.Message):
         )
         try:
             logging.info(f"🆘 Sending support message to chat ID: {SUPPORT_CHAT_ID}")
-            await bot.send_message(SUPPORT_CHAT_ID, chat_text, parse_mode="HTML")
-            logging.info(f"✅ Support message sent successfully to {SUPPORT_CHAT_ID}")
+            logging.info(f"🆘 Message content: {chat_text[:100]}...")
+            
+            # Преобразуем в int для уверенности
+            support_chat_id = int(SUPPORT_CHAT_ID)
+            logging.info(f"🆘 Converted to int: {support_chat_id}")
+            
+            result = await bot.send_message(support_chat_id, chat_text, parse_mode="HTML")
+            logging.info(f"✅ Support message sent successfully to {support_chat_id}")
+            logging.info(f"✅ Message ID: {result.message_id}")
             await message.answer("✅ Сообщение отправлено. Я постараюсь ответить как можно скорее!")
         except Exception as e:
             logging.error(f"❌ Ошибка при отправке в поддержку: {e}")
             logging.error(f"❌ SUPPORT_CHAT_ID: {SUPPORT_CHAT_ID}, Type: {type(SUPPORT_CHAT_ID)}")
+            logging.error(f"❌ Full error details: {str(e)}")
             await message.answer("⚠️ Не удалось отправить сообщение. Попробуй позже.")
         user_waiting_for_support.remove(user_id)
         return
