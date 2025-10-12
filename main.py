@@ -575,6 +575,8 @@ async def handle_video_description(message: types.Message, user_language: str):
     text = message.text.strip()
     orientation = user_waiting_for_video_orientation.get(user_id)
     
+    logging.info(f"🎬 Starting video creation for user {user_id}: {text[:50]}... (orientation: {orientation})")
+    
     # Получаем данные пользователя
     user = await get_user(user_id)
     if not user:
@@ -588,9 +590,6 @@ async def handle_video_description(message: types.Message, user_language: str):
         )
         return
     
-    # Уменьшаем количество видео
-    await update_user_videos(user_id, user['videos_left'] - 1)
-    
     orientation_text = get_text(user_language, f"orientation_{orientation}_name")
     
     # Отправляем сообщение о том, что видео принято
@@ -600,7 +599,7 @@ async def handle_video_description(message: types.Message, user_language: str):
             "video_accepted",
             description=text,
             orientation=orientation_text,
-            videos_left=user['videos_left'] - 1
+            videos_left=user['videos_left']
         ),
         reply_markup=main_menu(user_language)
     )
@@ -610,6 +609,9 @@ async def handle_video_description(message: types.Message, user_language: str):
         get_text(user_language, "video_creating"),
         reply_markup=main_menu(user_language)
     )
+    
+    # Уменьшаем количество видео ТОЛЬКО после успешного начала процесса
+    await update_user_videos(user_id, user['videos_left'] - 1)
     
     try:
         # Создаем видео через Sora 2 API
@@ -653,30 +655,47 @@ async def handle_video_description(message: types.Message, user_language: str):
                     reply_markup=main_menu(user_language)
                 )
             else:
-                # Ошибка создания
+                # Ошибка создания - возвращаем видео обратно
+                await update_user_videos(user_id, user['videos_left'])
+                
                 await creating_msg.edit_text(
-                    get_text(user_language, "video_error", videos_left=user['videos_left'] - 1)
+                    get_text(user_language, "video_error", videos_left=user['videos_left'])
                 )
                 # Отправляем меню отдельным сообщением
                 await message.answer(
                     get_text(user_language, "choose_action"),
                     reply_markup=main_menu(user_language)
                 )
-                # Возвращаем видео обратно
-                await update_user_videos(user_id, user['videos_left'])
                 
     except Exception as e:
         logging.error(f"❌ Critical error in handle_video_description: {e}")
-        await creating_msg.edit_text(
-            get_text(user_language, "video_error", videos_left=user['videos_left'] - 1)
-        )
-        # Отправляем меню отдельным сообщением
-        await message.answer(
-            get_text(user_language, "choose_action"),
-            reply_markup=main_menu(user_language)
-        )
-        # Возвращаем видео обратно
-        await update_user_videos(user_id, user['videos_left'])
+        
+        # Возвращаем видео обратно при любой критической ошибке
+        try:
+            await update_user_videos(user_id, user['videos_left'])
+            logging.info(f"✅ Returned video to user {user_id} due to critical error")
+        except Exception as db_error:
+            logging.error(f"❌ Failed to return video to user {user_id}: {db_error}")
+        
+        # Пытаемся отправить сообщение об ошибке
+        try:
+            await creating_msg.edit_text(
+                get_text(user_language, "video_error", videos_left=user['videos_left'])
+            )
+            # Отправляем меню отдельным сообщением
+            await message.answer(
+                get_text(user_language, "choose_action"),
+                reply_markup=main_menu(user_language)
+            )
+        except Exception as msg_error:
+            logging.error(f"❌ Failed to send error message: {msg_error}")
+            # Последняя попытка - простое сообщение
+            try:
+                await message.answer(
+                    f"❌ Произошла ошибка при создании видео. Видео возвращено на баланс.\n\n🎞 Осталось видео: {user['videos_left']}"
+                )
+            except:
+                logging.error("❌ Complete failure to notify user about error")
     
     # Очищаем состояние
     if user_id in user_waiting_for_video_orientation:
