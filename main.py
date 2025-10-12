@@ -456,6 +456,76 @@ async def cmd_help_command(message: types.Message):
         reply_markup=main_menu(user_language)
     )
 
+# === /examples ===
+@dp.message(Command("examples"))
+async def cmd_examples(message: types.Message):
+    """Обработка команды /examples"""
+    # Игнорируем команды из группы поддержки
+    if message.chat.id == int(SUPPORT_CHAT_ID):
+        return
+    
+    user_id = message.from_user.id
+    user = await get_user(user_id)
+    user_language = user.get('language', 'en') if user else 'en'
+    
+    await handle_examples(message, user_language)
+
+# === /profile ===
+@dp.message(Command("profile"))
+async def cmd_profile(message: types.Message):
+    """Обработка команды /profile"""
+    # Игнорируем команды из группы поддержки
+    if message.chat.id == int(SUPPORT_CHAT_ID):
+        return
+    
+    user_id = message.from_user.id
+    user = await get_user(user_id)
+    user_language = user.get('language', 'en') if user else 'en'
+    
+    await handle_profile(message, user_language)
+
+# === /language ===
+@dp.message(Command("language"))
+async def cmd_language(message: types.Message):
+    """Обработка команды /language"""
+    # Игнорируем команды из группы поддержки
+    if message.chat.id == int(SUPPORT_CHAT_ID):
+        return
+    
+    await handle_language_selection(message)
+
+# === /create ===
+@dp.message(Command("create"))
+async def cmd_create(message: types.Message):
+    """Обработка команды /create - показать выбор ориентации"""
+    # Игнорируем команды из группы поддержки
+    if message.chat.id == int(SUPPORT_CHAT_ID):
+        return
+    
+    user_id = message.from_user.id
+    user = await get_user(user_id)
+    user_language = user.get('language', 'en') if user else 'en'
+    
+    # Показываем выбор ориентации
+    await message.answer(
+        get_text(user_language, "choose_orientation"),
+        reply_markup=orientation_menu(user_language)
+    )
+
+# === /buy ===
+@dp.message(Command("buy"))
+async def cmd_buy(message: types.Message):
+    """Обработка команды /buy - показать тарифы"""
+    # Игнорируем команды из группы поддержки
+    if message.chat.id == int(SUPPORT_CHAT_ID):
+        return
+    
+    user_id = message.from_user.id
+    user = await get_user(user_id)
+    user_language = user.get('language', 'en') if user else 'en'
+    
+    await handle_buy_tariff(message, user_language)
+
 # === CALLBACK: Language choice ===
 @dp.callback_query()
 async def callback_handler(callback: types.CallbackQuery):
@@ -1269,6 +1339,7 @@ async def start_bot():
         else:
             # Polling режим для локальной разработки
             logging.info("🔄 Starting bot in polling mode")
+            
             try:
                 await dp.start_polling(bot)
             except KeyboardInterrupt:
