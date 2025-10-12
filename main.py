@@ -347,6 +347,7 @@ user_waiting_for_video_orientation = {}
 # Состояния для системы примеров
 user_example_category = {}  # {user_id: category_name}
 user_example_index = {}     # {user_id: current_index}
+user_example_for_creation = {}  # {user_id: description} - пример для создания видео
 
 # === EXAMPLES: CATEGORY PAGINATION ===
 CATEGORIES_PER_PAGE = 6
@@ -577,25 +578,41 @@ async def callback_handler(callback: types.CallbackQuery):
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
         
-        await callback.message.edit_text(
-            get_text(
-                user_language, 
-                "orientation_selected",
-                orientation=get_text(user_language, "orientation_vertical_name")
+        # Проверяем, есть ли сохраненный пример для создания
+        if user_id in user_example_for_creation:
+            # Создаем видео из примера
+            description = user_example_for_creation[user_id]
+            del user_example_for_creation[user_id]  # Удаляем после использования
+            await handle_video_description_from_example(callback, description)
+        else:
+            # Обычный выбор ориентации
+            await callback.message.edit_text(
+                get_text(
+                    user_language, 
+                    "orientation_selected",
+                    orientation=get_text(user_language, "orientation_vertical_name")
+                )
             )
-        )
     elif callback.data == "orientation_horizontal":
         user_waiting_for_video_orientation[user_id] = "horizontal"
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
         
-        await callback.message.edit_text(
-            get_text(
-                user_language, 
-                "orientation_selected",
-                orientation=get_text(user_language, "orientation_horizontal_name")
+        # Проверяем, есть ли сохраненный пример для создания
+        if user_id in user_example_for_creation:
+            # Создаем видео из примера
+            description = user_example_for_creation[user_id]
+            del user_example_for_creation[user_id]  # Удаляем после использования
+            await handle_video_description_from_example(callback, description)
+        else:
+            # Обычный выбор ориентации
+            await callback.message.edit_text(
+                get_text(
+                    user_language,
+                    "orientation_selected",
+                    orientation=get_text(user_language, "orientation_horizontal_name")
+                )
             )
-        )
     
     # Обработка покупки тарифов
     elif callback.data == "buy_trial":
@@ -659,9 +676,18 @@ async def callback_handler(callback: types.CallbackQuery):
         if category_key:
             example = get_example(category_key, current_index)
             if example:
-                # Устанавливаем ориентацию и отправляем на создание видео
-                user_waiting_for_video_orientation[user_id] = "vertical"  # По умолчанию вертикальная
-                await handle_video_description_from_example(callback, example['description'])
+                # Сохраняем пример для создания видео
+                user_example_for_creation[user_id] = example['description']
+                
+                # Получаем язык пользователя для отображения меню ориентации
+                user = await get_user(user_id)
+                user_language = user.get('language', 'en') if user else 'en'
+                
+                # Показываем выбор ориентации
+                await callback.message.edit_text(
+                    get_text(user_language, "choose_orientation"),
+                    reply_markup=orientation_menu(user_language)
+                )
     
     await callback.answer()
 
@@ -833,7 +859,7 @@ async def handle_video_description(message: types.Message, user_language: str):
         if task_id and status == "success":
             # Успешно отправлено в KIE.AI
             await creating_msg.edit_text(
-                f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
+                f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{text}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
                 parse_mode="HTML"
             )
             # Меню уже показано в предыдущем сообщении, не дублируем
@@ -1178,14 +1204,35 @@ async def sora_callback(request):
                 if video_urls:
                     # Отправляем видео пользователю
                     try:
-                        await bot.send_message(
+                        # Сначала отправляем видео
+                        await bot.send_video(
                             user_id, 
-                            f"🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>\n\n💡 Для продолжения создания пришлите новое описание!",
+                            video=video_urls[0],
+                            caption="🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n\n💡 Для продолжения создания пришлите новое описание!",
                             parse_mode="HTML"
                         )
+                        
+                        # Затем отправляем меню
+                        user = await get_user(user_id)
+                        user_language = user.get('language', 'en') if user else 'en'
+                        await bot.send_message(
+                            user_id,
+                            get_text(user_language, "choose_action"),
+                            reply_markup=main_menu(user_language)
+                        )
+                        
                         logging.info(f"✅ Video sent to user {user_id}: {video_urls[0]}")
                     except Exception as e:
                         logging.error(f"❌ Error sending video to user {user_id}: {e}")
+                        # Fallback - отправляем ссылку, если не удалось отправить видео
+                        try:
+                            await bot.send_message(
+                                user_id, 
+                                f"🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>\n\n💡 Для продолжения создания пришлите новое описание!",
+                                parse_mode="HTML"
+                            )
+                        except Exception as fallback_error:
+                            logging.error(f"❌ Fallback error: {fallback_error}")
                 else:
                     logging.error(f"❌ No video URLs in result: {result_json}")
             else:
@@ -1390,9 +1437,9 @@ async def handle_video_description_from_example(callback: types.CallbackQuery, d
         task_id, status = await create_sora_task(description, aspect_ratio, user_id=user_id)
         
         if task_id and status == "success":
-            # Показываем успешное создание задачи
+            # Показываем успешное создание задачи с промптом
             await creating_msg.edit_text(
-                f"✅ <b>Задача отправлена в Sora 2!</b>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n\n⏳ Ожидайте уведомление когда видео будет готово"
+                f"✅ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{description}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n\n⏳ Ожидайте уведомление когда видео будет готово"
             )
             
             # Показываем меню
