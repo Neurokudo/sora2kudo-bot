@@ -17,7 +17,7 @@ from yookassa import Configuration, Payment
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
 from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
-from examples import EXAMPLES, get_categories, get_examples_from_category, get_example
+from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
 
 # Импорт Sora client
 from sora_client import create_sora_task, extract_user_from_param
@@ -523,38 +523,38 @@ async def callback_handler(callback: types.CallbackQuery):
     
     # Обработка выбора категории примеров
     elif callback.data.startswith("category_"):
-        category = callback.data.replace("category_", "")
-        user_example_category[user_id] = category
+        category_key = callback.data.replace("category_", "")
+        user_example_category[user_id] = category_key
         user_example_index[user_id] = 0
-        await show_example(callback, category, 0)
+        await show_example(callback, category_key, 0)
     
     # Обработка навигации по примерам
     elif callback.data == "example_prev":
-        category = user_example_category.get(user_id)
-        if category:
-            examples = get_examples_from_category(category)
+        category_key = user_example_category.get(user_id)
+        if category_key:
+            examples = get_examples_from_category(category_key)
             current_index = user_example_index.get(user_id, 0)
             prev_index = (current_index - 1) % len(examples)
             user_example_index[user_id] = prev_index
-            await show_example(callback, category, prev_index)
+            await show_example(callback, category_key, prev_index)
     
     elif callback.data == "example_next":
-        category = user_example_category.get(user_id)
-        if category:
-            examples = get_examples_from_category(category)
+        category_key = user_example_category.get(user_id)
+        if category_key:
+            examples = get_examples_from_category(category_key)
             current_index = user_example_index.get(user_id, 0)
             next_index = (current_index + 1) % len(examples)
             user_example_index[user_id] = next_index
-            await show_example(callback, category, next_index)
+            await show_example(callback, category_key, next_index)
     
     elif callback.data == "example_back_to_categories":
         await show_categories(callback)
     
     elif callback.data == "example_create_video":
-        category = user_example_category.get(user_id)
+        category_key = user_example_category.get(user_id)
         current_index = user_example_index.get(user_id, 0)
-        if category:
-            example = get_example(category, current_index)
+        if category_key:
+            example = get_example(category_key, current_index)
             if example:
                 # Устанавливаем ориентацию и отправляем на создание видео
                 user_waiting_for_video_orientation[user_id] = "vertical"  # По умолчанию вертикальная
@@ -1182,31 +1182,33 @@ async def start_bot():
         logging.error(f"❌ Traceback: {traceback.format_exc()}")
         raise
 
-# === EXAMPLES SYSTEM FUNCTIONS ===
+        # === EXAMPLES SYSTEM FUNCTIONS ===
 
-async def show_categories(callback: types.CallbackQuery):
-    """Показать категории примеров"""
-    categories = get_categories()
-    
-    keyboard = []
-    for category in categories:
-        keyboard.append([InlineKeyboardButton(text=category, callback_data=f"category_{category}")])
-    
-    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+        async def show_categories(callback: types.CallbackQuery):
+            """Показать категории примеров"""
+            categories = get_categories()
+            
+            keyboard = []
+            for category_key in categories:
+                category_name = get_category_name(category_key)
+                keyboard.append([InlineKeyboardButton(text=category_name, callback_data=f"category_{category_key}")])
+            
+            markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     
     text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
     
     await callback.message.edit_text(text, reply_markup=markup)
 
-async def show_example(callback: types.CallbackQuery, category: str, index: int):
-    """Показать конкретный пример с навигацией"""
-    example = get_example(category, index)
-    if not example:
-        await callback.message.edit_text("❌ Пример не найден")
-        return
-    
-    examples = get_examples_from_category(category)
-    total_examples = len(examples)
+        async def show_example(callback: types.CallbackQuery, category_key: str, index: int):
+            """Показать конкретный пример с навигацией"""
+            example = get_example(category_key, index)
+            if not example:
+                await callback.message.edit_text("❌ Пример не найден")
+                return
+            
+            examples = get_examples_from_category(category_key)
+            total_examples = len(examples)
+            category_name = get_category_name(category_key)
     
     # Создаем навигационные кнопки
     keyboard = [
@@ -1220,7 +1222,7 @@ async def show_example(callback: types.CallbackQuery, category: str, index: int)
     
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     
-    text = f"📚 <b>{category}</b>\n\n<b>{example['title']}</b>\n\n<code>{example['description']}</code>\n\n<i>{index + 1} из {total_examples}</i>"
+            text = f"📚 <b>{category_name}</b>\n\n<b>{example['title']}</b>\n\n<code>{example['description']}</code>\n\n<i>{index + 1} из {total_examples}</i>"
     
     await callback.message.edit_text(text, reply_markup=markup)
 
