@@ -33,28 +33,28 @@ LANG = {
                 "video_ready": "🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <b>Видео отправлено в чат выше</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n\n💡 Для продолжения создания пришлите новое описание!",
                 "video_creating": "🎬 <b>Создание видео...</b>\n\n⏳ Обрабатываем ваше описание через Sora 2\n🔄 Это может занять 2-3 минуты\n\n📹 Видео будет отправлено в этот чат как только будет готово!",
                 "video_error": "❌ <b>Ошибка создания видео</b>\n\n⚠️ Не удалось создать видео по вашему описанию\n🔄 Попробуйте изменить описание или обратитесь в поддержку\n\n🎞 Осталось видео: <b>{videos_left}</b>",
-                "no_videos_left": "😢 <b>Ой-ой! У тебя закончились видео!</b>\n\n💔 Больше не можешь создавать крутые ролики...\n🎬 Но не расстраивайся!\n\n💎 <b>Выбери тариф и продолжай творить:</b>\n🐣 <b>Пробный</b> — 3 видео за ₽490\n🎬 <b>Базовый</b> — 10 видео за ₽1 290\n🚀 <b>Максимум</b> — 30 видео за ₽2 990\n\n🔥 <b>Создавай вирусные видео и радуй друзей!</b>",
+                "no_videos_left": "😢 <b>Ой-ой! У тебя закончились видео!</b>\n\n💔 Больше не можешь создавать крутые ролики...\n🎬 Но не расстраивайся!\n\n💎 <b>Выбери тариф и продолжай творить:</b>\n🌱 <b>Пробный</b> — 3 видео за ₽390\n✨ <b>Базовый</b> — 10 видео за ₽990\n💎 <b>Максимум</b> — 30 видео за ₽2 190\n\n🔥 <b>Создавай вирусные видео и радуй друзей!</b>",
         
         # Примеры
         "examples": "📘 <b>Примеры идей для видео:</b>\n\n🔹 Рыбаки вытаскивают сеть, в ней странное существо\n🔹 Грибники находят движущуюся массу под листьями\n🔹 Бабушка кормит капибару у окна, рассвет\n🔹 Советские рабочие открывают капсулу времени\n🔹 Дети находят портал в другой мир\n🔹 Старый дом с привидениями, ночь\n\n💡 <b>Теперь создавай свое видео!</b>",
         
                 # Профиль
-                "profile": "💰 <b>Твой кабинет</b>\n\n👤 Имя: <b>{name}</b>\n📦 Тариф: <b>{plan}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n📅 Регистрация: <b>{date}</b>\n\n🔁 <b>Нужно больше видео?</b>\nВы можете ДОКУПИТЬ тариф:",
+                "profile": "💰 <b>Твой кабинет</b>\n\n👤 Имя: <b>{name}</b>\n📦 Тариф: <b>{plan}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n📅 Регистрация: <b>{date}</b>\n\n🔁 <b>Нужно больше видео?</b>\nВыбери подходящий тариф:\n\n🌱 <b>Пробный</b> — 3 видео за ₽390\n✨ <b>Базовый</b> — 10 видео за ₽990\n💎 <b>Максимум</b> — 30 видео за ₽2 190",
         
         # Помощь
         "help_text": "🧭 <b>Помощь</b>\n\nОпиши свою проблему, я постараюсь помочь скоро!",
         "support_sent": "✅ Сообщение отправлено. Я постараюсь ответить как можно скорее!",
         
-        # Кнопки покупки тарифов
-        "btn_buy_trial": "🐣 Купить Пробный (₽490)",
-        "btn_buy_basic": "🎬 Купить Базовый (₽1 290)", 
-        "btn_buy_maximum": "🚀 Купить Максимум (₽2 990)",
-        "btn_buy_foreign": "💳 Иностранная карта",
-        "btn_buy_tariff": "💳 Купить тариф",
-        "tariff_selection": "💳 <b>Выберите тариф для покупки:</b>",
+                # Кнопки покупки тарифов
+                "btn_buy_trial": "🌱 Купить Пробный (₽390)",
+                "btn_buy_basic": "✨ Купить Базовый (₽990)", 
+                "btn_buy_maximum": "💎 Купить Максимум (₽2 190)",
+                "btn_buy_foreign": "💳 Иностранная карта",
+                "btn_buy_tariff": "💳 Купить тариф",
+                "tariff_selection": "💳 <b>Выберите тариф для покупки:</b>",
         
-        # Сообщения для пользователей без тарифа
-        "no_tariff_message": "🚀 <b>Начни создавать вирусные видео прямо сейчас!</b>\n\n💎 <b>Выбери тариф и получи доступ к SORA 2:</b>\n🐣 <b>Пробный</b> — 3 видео за ₽490\n🎬 <b>Базовый</b> — 10 видео за ₽1 290\n🚀 <b>Максимум</b> — 30 видео за ₽2 990\n\n🔥 <b>Создавай крутые видео и радуй друзей и подписчиков!</b>",
+                # Сообщения для пользователей без тарифа
+                "no_tariff_message": "🚀 <b>Начни создавать вирусные видео прямо сейчас!</b>\n\n💎 <b>Выбери тариф и получи доступ к SORA 2:</b>\n🌱 <b>Пробный</b> — 3 видео за ₽390\n✨ <b>Базовый</b> — 10 видео за ₽990\n💎 <b>Максимум</b> — 30 видео за ₽2 190\n\n🔥 <b>Создавай крутые видео и радуй друзей и подписчиков!</b>",
         
         # Общие фразы
         "use_buttons": "💡 Используй кнопки меню или выбери ориентацию видео!",
@@ -91,28 +91,28 @@ LANG = {
                 "video_ready": "🎉 <b>Your video is ready!</b>\n\n🎬 Video successfully created via Sora 2\n📹 <b>Video sent to chat above</b>\n🎞 Videos left: <b>{videos_left}</b>\n\n💡 To continue creating, send a new description!",
                 "video_creating": "🎬 <b>Creating video...</b>\n\n⏳ Processing your description through Sora 2\n🔄 This may take 2-3 minutes\n\n📹 Video will be sent to this chat once ready!",
                 "video_error": "❌ <b>Video creation error</b>\n\n⚠️ Could not create video from your description\n🔄 Try changing the description or contact support\n\n🎞 Videos left: <b>{videos_left}</b>",
-                "no_videos_left": "😢 <b>Oops! You're out of videos!</b>\n\n💔 Can't create cool videos anymore...\n🎬 But don't worry!\n\n💎 <b>Choose a tariff and keep creating:</b>\n🐣 <b>Trial</b> — 3 videos for ₽490\n🎬 <b>Basic</b> — 10 videos for ₽1 290\n🚀 <b>Maximum</b> — 30 videos for ₽2 990\n\n🔥 <b>Create viral videos and delight your friends!</b>",
+                "no_videos_left": "😢 <b>Oops! You're out of videos!</b>\n\n💔 Can't create cool videos anymore...\n🎬 But don't worry!\n\n💎 <b>Choose a tariff and keep creating:</b>\n🌱 <b>Trial</b> — 3 videos for ₽390\n✨ <b>Basic</b> — 10 videos for ₽990\n💎 <b>Maximum</b> — 30 videos for ₽2 190\n\n🔥 <b>Create viral videos and delight your friends!</b>",
         
         # Примеры
         "examples": "📘 <b>Video idea examples:</b>\n\n🔹 Fishermen pulling a net with strange creature\n🔹 Mushroom pickers find moving mass under leaves\n🔹 Grandma feeding capybara by window at dawn\n🔹 Soviet workers opening time capsule\n🔹 Children finding portal to another world\n🔹 Old haunted house at night\n\n💡 <b>Now create your video!</b>",
         
                 # Профиль
-                "profile": "💰 <b>Your Profile</b>\n\n👤 Name: <b>{name}</b>\n📦 Plan: <b>{plan}</b>\n🎞 Videos left: <b>{videos_left}</b>\n📅 Registration: <b>{date}</b>\n\n🔁 <b>Need more videos?</b>\nYou can BUY MORE tariff:",
+                "profile": "💰 <b>Your Profile</b>\n\n👤 Name: <b>{name}</b>\n📦 Plan: <b>{plan}</b>\n🎞 Videos left: <b>{videos_left}</b>\n📅 Registration: <b>{date}</b>\n\n🔁 <b>Need more videos?</b>\nChoose a suitable tariff:\n\n🌱 <b>Trial</b> — 3 videos for ₽390\n✨ <b>Basic</b> — 10 videos for ₽990\n💎 <b>Maximum</b> — 30 videos for ₽2 190",
         
         # Помощь
         "help_text": "🧭 <b>Help</b>\n\nDescribe your problem, I'll try to help soon!",
         "support_sent": "✅ Message sent. I'll try to respond as soon as possible!",
         
-        # Кнопки покупки тарифов
-        "btn_buy_trial": "🐣 Buy Trial (₽490)",
-        "btn_buy_basic": "🎬 Buy Basic (₽1 290)", 
-        "btn_buy_maximum": "🚀 Buy Maximum (₽2 990)",
-        "btn_buy_foreign": "💳 Foreign Card",
-        "btn_buy_tariff": "💳 Buy tariff",
-        "tariff_selection": "💳 <b>Choose tariff to purchase:</b>",
+                # Кнопки покупки тарифов
+                "btn_buy_trial": "🌱 Buy Trial (₽390)",
+                "btn_buy_basic": "✨ Buy Basic (₽990)", 
+                "btn_buy_maximum": "💎 Buy Maximum (₽2 190)",
+                "btn_buy_foreign": "💳 Foreign Card",
+                "btn_buy_tariff": "💳 Buy tariff",
+                "tariff_selection": "💳 <b>Choose tariff to purchase:</b>",
         
-        # Сообщения для пользователей без тарифа
-        "no_tariff_message": "🚀 <b>Start creating viral videos right now!</b>\n\n💎 <b>Choose a tariff and get access to SORA 2:</b>\n🐣 <b>Trial</b> — 3 videos for ₽490\n🎬 <b>Basic</b> — 10 videos for ₽1 290\n🚀 <b>Maximum</b> — 30 videos for ₽2 990\n\n🔥 <b>Create amazing videos and delight your friends and followers!</b>",
+                # Сообщения для пользователей без тарифа
+                "no_tariff_message": "🚀 <b>Start creating viral videos right now!</b>\n\n💎 <b>Choose a tariff and get access to SORA 2:</b>\n🌱 <b>Trial</b> — 3 videos for ₽390\n✨ <b>Basic</b> — 10 videos for ₽990\n💎 <b>Maximum</b> — 30 videos for ₽2 190\n\n🔥 <b>Create amazing videos and delight your friends and followers!</b>",
         
         # Общие фразы
         "use_buttons": "💡 Use menu buttons or choose video orientation!",

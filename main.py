@@ -44,6 +44,25 @@ SORA_API_URL = os.getenv("SORA_API_URL", "https://api.sora2.com/v1/videos")
 KIE_API_KEY = os.getenv("KIE_API_KEY")
 KIE_API_URL = os.getenv("KIE_API_URL", "https://api.kie.ai/api/v1/jobs/createTask")
 
+# === TARIFF CONFIGURATION ===
+tariff_videos = {
+    "trial": 3,
+    "basic": 10,
+    "maximum": 30
+}
+
+tariff_prices = {
+    "trial": 390,
+    "basic": 990,
+    "maximum": 2190
+}
+
+tariff_names = {
+    "trial": "🌱 Пробный",
+    "basic": "✨ Базовый",
+    "maximum": "💎 Максимум"
+}
+
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN not found in environment variables")
 
@@ -467,23 +486,23 @@ async def callback_handler(callback: types.CallbackQuery):
             )
         )
     
-    # Обработка покупки тарифов
-    elif callback.data == "buy_trial":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        await handle_payment(callback, "trial", 490, user_language)
-    elif callback.data == "buy_basic":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        await handle_payment(callback, "basic", 1290, user_language)
-    elif callback.data == "buy_maximum":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        await handle_payment(callback, "maximum", 2990, user_language)
-    elif callback.data == "buy_foreign":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        await handle_foreign_payment(callback, user_language)
+        # Обработка покупки тарифов
+        elif callback.data == "buy_trial":
+            user = await get_user(user_id)
+            user_language = user.get('language', 'en') if user else 'en'
+            await handle_payment(callback, "trial", tariff_prices["trial"], user_language)
+        elif callback.data == "buy_basic":
+            user = await get_user(user_id)
+            user_language = user.get('language', 'en') if user else 'en'
+            await handle_payment(callback, "basic", tariff_prices["basic"], user_language)
+        elif callback.data == "buy_maximum":
+            user = await get_user(user_id)
+            user_language = user.get('language', 'en') if user else 'en'
+            await handle_payment(callback, "maximum", tariff_prices["maximum"], user_language)
+        elif callback.data == "buy_foreign":
+            user = await get_user(user_id)
+            user_language = user.get('language', 'en') if user else 'en'
+            await handle_foreign_payment(callback, user_language)
     
     await callback.answer()
 
@@ -766,14 +785,9 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
     """Обработка покупки тарифа"""
     user_id = callback.from_user.id
     
-    # Определяем количество видео для каждого тарифа
-    tariff_videos = {
-        "trial": 3,
-        "basic": 10,
-        "maximum": 30
-    }
-    
+    # Получаем количество видео и цену из конфигурации
     videos_count = tariff_videos.get(tariff, 0)
+    price = tariff_prices.get(tariff, price)  # Используем переданную цену как fallback
     
     if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
         # Если YooKassa не настроен, показываем заглушку
@@ -791,11 +805,6 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
             payment_url = payment.confirmation.confirmation_url
             
             # Получаем правильное название тарифа
-            tariff_names = {
-                "trial": "Пробный",
-                "basic": "Базовый", 
-                "maximum": "Максимум"
-            }
             tariff_display_name = tariff_names.get(tariff, tariff)
             
             payment_text = f"💳 <b>Оплата тарифа {tariff_display_name}</b>\n\n💰 Сумма: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n📱 После оплаты ваш тариф будет автоматически активирован!"
@@ -941,12 +950,6 @@ async def yookassa_webhook(request):
             logging.info(f"💳 Processing payment for user {user_id}, tariff {tariff}, videos {videos_count}, amount {amount}")
             
             # Обновляем тариф пользователя
-            tariff_names = {
-                "trial": "Пробный",
-                "basic": "Базовый", 
-                "maximum": "Максимум"
-            }
-            
             tariff_name = tariff_names.get(tariff, tariff)
             success = await update_user_tariff(user_id, tariff_name, videos_count, int(float(amount)))
             logging.info(f"💳 User tariff update result: {success}")
