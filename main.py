@@ -486,23 +486,23 @@ async def callback_handler(callback: types.CallbackQuery):
             )
         )
     
-        # Обработка покупки тарифов
-        elif callback.data == "buy_trial":
-            user = await get_user(user_id)
-            user_language = user.get('language', 'en') if user else 'en'
-            await handle_payment(callback, "trial", tariff_prices["trial"], user_language)
-        elif callback.data == "buy_basic":
-            user = await get_user(user_id)
-            user_language = user.get('language', 'en') if user else 'en'
-            await handle_payment(callback, "basic", tariff_prices["basic"], user_language)
-        elif callback.data == "buy_maximum":
-            user = await get_user(user_id)
-            user_language = user.get('language', 'en') if user else 'en'
-            await handle_payment(callback, "maximum", tariff_prices["maximum"], user_language)
-        elif callback.data == "buy_foreign":
-            user = await get_user(user_id)
-            user_language = user.get('language', 'en') if user else 'en'
-            await handle_foreign_payment(callback, user_language)
+    # Обработка покупки тарифов
+    elif callback.data == "buy_trial":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await handle_payment(callback, "trial", tariff_prices["trial"], user_language)
+    elif callback.data == "buy_basic":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await handle_payment(callback, "basic", tariff_prices["basic"], user_language)
+    elif callback.data == "buy_maximum":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await handle_payment(callback, "maximum", tariff_prices["maximum"], user_language)
+    elif callback.data == "buy_foreign":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await handle_foreign_payment(callback, user_language)
     
     await callback.answer()
 
