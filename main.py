@@ -349,6 +349,9 @@ user_example_category = {}  # {user_id: category_name}
 user_example_index = {}     # {user_id: current_index}
 user_example_for_creation = {}  # {user_id: description} - пример для создания видео
 
+# Сообщения задач для удаления при получении видео
+user_task_messages = {}  # {user_id: message_id} - сообщения "Задача отправлена в Sora 2!"
+
 # === EXAMPLES: CATEGORY PAGINATION ===
 CATEGORIES_PER_PAGE = 6
 
@@ -816,11 +819,6 @@ async def handle_video_description(message: types.Message, user_language: str):
             get_text(user_language, "no_videos_left"),
             reply_markup=tariff_selection(user_language)
         )
-        # Также показываем основное меню
-        await message.answer(
-            get_text(user_language, "choose_action"),
-            reply_markup=main_menu(user_language)
-        )
         return
     
     orientation_text = get_text(user_language, f"orientation_{orientation}_name")
@@ -861,10 +859,12 @@ async def handle_video_description(message: types.Message, user_language: str):
             await accepted_msg.delete()
             
             # Успешно отправлено в KIE.AI
-            await creating_msg.edit_text(
+            task_msg = await creating_msg.edit_text(
                 f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{text}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
                 parse_mode="HTML"
             )
+            # Сохраняем ID сообщения для последующего удаления
+            user_task_messages[user_id] = task_msg.message_id
             # Меню уже показано в предыдущем сообщении, не дублируем
             logging.info(f"✅ Sora task created for user {user_id}: {task_id}")
         else:
@@ -1207,13 +1207,21 @@ async def sora_callback(request):
             if user_id:
                 video_urls = json.loads(result_json).get("resultUrls", [])
                 if video_urls:
+                    # Удаляем сообщение "Задача отправлена в Sora 2!" если есть
+                    if user_id in user_task_messages:
+                        try:
+                            await bot.delete_message(user_id, user_task_messages[user_id])
+                            del user_task_messages[user_id]
+                        except Exception as e:
+                            logging.warning(f"⚠️ Could not delete task message for user {user_id}: {e}")
+                    
                     # Отправляем видео пользователю
                     try:
                         # Пробуем отправить видео напрямую по URL
                         await bot.send_video(
                             user_id, 
                             video=video_urls[0],
-                            caption="🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n\n💡 Для продолжения создания пришлите новое описание!",
+                            caption="🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2",
                             parse_mode="HTML"
                         )
                         
@@ -1241,7 +1249,7 @@ async def sora_callback(request):
                                             await bot.send_video(
                                                 user_id,
                                                 video=video_file,
-                                                caption="🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n\n💡 Для продолжения создания пришлите новое описание!",
+                                                caption="🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2",
                                                 parse_mode="HTML"
                                             )
                                         
@@ -1259,24 +1267,14 @@ async def sora_callback(request):
                             try:
                                 await bot.send_message(
                                     user_id, 
-                                    f"🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>\n\n💡 Для продолжения создания пришлите новое описание!",
+                                    f"🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>",
                                     parse_mode="HTML"
                                 )
                                 logging.info(f"✅ Fallback link sent to user {user_id}")
                             except Exception as fallback_error:
                                 logging.error(f"❌ Fallback error: {fallback_error}")
                     
-                    # Отправляем меню в любом случае
-                    try:
-                        user = await get_user(user_id)
-                        user_language = user.get('language', 'en') if user else 'en'
-                        await bot.send_message(
-                            user_id,
-                            get_text(user_language, "choose_action"),
-                            reply_markup=main_menu(user_language)
-                        )
-                    except Exception as menu_error:
-                        logging.error(f"❌ Error sending menu to user {user_id}: {menu_error}")
+                    # Меню не отправляем - пользователь сам выберет действие
                 else:
                     logging.error(f"❌ No video URLs in result: {result_json}")
             else:
@@ -1482,14 +1480,15 @@ async def handle_video_description_from_example(callback: types.CallbackQuery, d
         
         if task_id and status == "success":
             # Показываем успешное создание задачи с промптом
-            await creating_msg.edit_text(
+            task_msg = await creating_msg.edit_text(
                 f"✅ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{description}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n\n⏳ Ожидайте уведомление когда видео будет готово"
             )
+            # Сохраняем ID сообщения для последующего удаления
+            user_task_messages[user_id] = task_msg.message_id
             
-            # Показываем меню
+            # Информируем о том, что видео будет отправлено
             await callback.message.answer(
-                "🎬 Видео будет отправлено в этот чат автоматически",
-                reply_markup=main_menu(user_language)
+                "🎬 Видео будет отправлено в этот чат автоматически"
             )
         else:
             # Ошибка создания - возвращаем видео обратно
@@ -1498,11 +1497,7 @@ async def handle_video_description_from_example(callback: types.CallbackQuery, d
             error_text = get_text(user_language, "video_error", videos_left=user['videos_left'])
             await creating_msg.edit_text(error_text)
             
-            # Показываем меню
-            await callback.message.answer(
-                get_text(user_language, "choose_action"),
-                reply_markup=main_menu(user_language)
-            )
+            # Меню уже показано в предыдущем сообщении
             
     except Exception as e:
         logging.error(f"❌ Error creating video from example: {e}")
