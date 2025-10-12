@@ -18,6 +18,9 @@ from yookassa import Configuration, Payment
 from translations import get_text, is_rtl_language
 from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
 
+# Импорт Sora client
+from sora_client import create_sora_task, extract_user_from_param
+
 # === CONFIGURATION ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 PUBLIC_URL = os.getenv("PUBLIC_URL")
@@ -36,6 +39,10 @@ TRIBUTE_API_KEY = os.getenv("TRIBUTE_API_KEY")
 # Sora 2 API configuration
 SORA_API_KEY = os.getenv("SORA_API_KEY")
 SORA_API_URL = os.getenv("SORA_API_URL", "https://api.sora2.com/v1/videos")
+
+# KIE.AI Sora-2 configuration
+KIE_API_KEY = os.getenv("KIE_API_KEY")
+KIE_API_URL = os.getenv("KIE_API_URL", "https://api.kie.ai/api/v1/jobs/createTask")
 
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN not found in environment variables")
@@ -619,39 +626,35 @@ async def handle_video_description(message: types.Message, user_language: str):
     await update_user_videos(user_id, user['videos_left'] - 1)
     
     try:
-        # Создаем видео через Sora 2 API
-        video_url, video_id = await create_sora_video(text, orientation, user_id)
+        # Определяем aspect_ratio для KIE.AI
+        aspect_ratio = "portrait" if orientation == "vertical" else "landscape"
         
-        if video_url and video_id != "demo_mode":
-            # Успешно создано через Sora 2 API
-            try:
-                # Отправляем видео
-                await message.answer_video(
-                    video=video_url,
-                    caption=get_text(
-                        user_language,
-                        "video_ready",
-                        videos_left=user['videos_left'] - 1
-                    ),
-                    reply_markup=main_menu(user_language)
-                )
-                logging.info(f"✅ Video sent to user {user_id}: {video_id}")
-            except Exception as e:
-                logging.error(f"❌ Error sending video to user {user_id}: {e}")
-                # Если не удалось отправить видео, отправляем ссылку
-                await message.answer(
-                    f"🎬 <b>Ваше видео готово!</b>\n\n📹 <a href='{video_url}'>Смотреть видео</a>\n\n" + 
-                    get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1),
-                    reply_markup=main_menu(user_language),
-                    parse_mode="HTML"
-                )
+        # Создаем задачу через KIE.AI Sora-2 API
+        task_id, status = await create_sora_task(
+            prompt=text, 
+            aspect_ratio=aspect_ratio, 
+            user_id=user_id
+        )
+        
+        if task_id and status == "success":
+            # Успешно отправлено в KIE.AI
+            await creating_msg.edit_text(
+                f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
+                parse_mode="HTML"
+            )
+            # Отправляем меню отдельным сообщением
+            await message.answer(
+                get_text(user_language, "choose_action"),
+                reply_markup=main_menu(user_language)
+            )
+            logging.info(f"✅ Sora task created for user {user_id}: {task_id}")
         else:
-            # Demo режим или ошибка
-            if video_id == "demo_mode":
+            # Ошибка или demo режим
+            if status == "demo_mode":
                 # В demo режиме симулируем создание
                 await asyncio.sleep(3)
                 await creating_msg.edit_text(
-                    "🎬 <b>Демо режим</b>\n\n⚠️ Sora 2 API не настроен\n🔄 В реальной версии здесь будет ваше видео\n\n" +
+                    "🎬 <b>Демо режим</b>\n\n⚠️ KIE.AI API не настроен\n🔄 В реальной версии здесь будет ваше видео\n\n" +
                     get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1)
                 )
                 # Отправляем меню отдельным сообщением
@@ -994,6 +997,43 @@ async def tribute_webhook(request):
         logging.error(f"❌ Error in Tribute webhook: {e}")
         return web.Response(text="Error", status=500)
 
+async def sora_callback(request):
+    """Callback от Kie.AI Sora-2 — получение готового видео"""
+    try:
+        data = await request.json()
+        logging.info(f"🎬 Sora callback received: {data}")
+        
+        if data.get("code") == 200 and data["data"]["state"] == "success":
+            result_json = data["data"]["resultJson"]
+            param = data["data"].get("param", "")
+            user_id = extract_user_from_param(param)
+            
+            if user_id:
+                video_urls = json.loads(result_json).get("resultUrls", [])
+                if video_urls:
+                    # Отправляем видео пользователю
+                    try:
+                        await bot.send_message(
+                            user_id, 
+                            f"🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>\n\n💡 Для продолжения создания пришлите новое описание!",
+                            parse_mode="HTML"
+                        )
+                        logging.info(f"✅ Video sent to user {user_id}: {video_urls[0]}")
+                    except Exception as e:
+                        logging.error(f"❌ Error sending video to user {user_id}: {e}")
+                else:
+                    logging.error(f"❌ No video URLs in result: {result_json}")
+            else:
+                logging.error(f"❌ Could not extract user_id from param: {param}")
+        else:
+            logging.warning(f"🎬 Sora callback error: {data}")
+            
+        return web.Response(text="OK")
+        
+    except Exception as e:
+        logging.error(f"❌ Error in sora_callback: {e}")
+        return web.Response(text="Error", status=500)
+
 # === WEB APPLICATION ===
 def create_app():
     """Создание веб-приложения"""
@@ -1004,6 +1044,7 @@ def create_app():
     app.router.add_post("/yookassa_webhook", yookassa_webhook)
     app.router.add_post("/webhook/yookassa", yookassa_webhook)  # Дополнительный маршрут для YooKassa
     app.router.add_post("/tribute_webhook", tribute_webhook)
+    app.router.add_post("/sora_callback", sora_callback)  # Callback от Kie.AI Sora-2
     app.router.add_get("/health", health)
     
     return app
