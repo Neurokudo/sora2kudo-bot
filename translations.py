@@ -36,8 +36,8 @@ LANG = {
         # Примеры
         "examples": "📘 <b>Примеры идей для видео:</b>\n\n🔹 Рыбаки вытаскивают сеть, в ней странное существо\n🔹 Грибники находят движущуюся массу под листьями\n🔹 Бабушка кормит капибару у окна, рассвет\n🔹 Советские рабочие открывают капсулу времени\n🔹 Дети находят портал в другой мир\n🔹 Старый дом с привидениями, ночь\n\n💡 <b>Теперь создавай свое видео!</b>",
         
-        # Профиль
-        "profile": "💰 <b>Твой кабинет</b>\n\n👤 Имя: <b>{name}</b>\n📦 Тариф: <b>{plan}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n💳 Всего оплачено: <b>{payments} ₽</b>\n📅 Регистрация: <b>{date}</b>\n\n🔁 <b>Нужно больше видео?</b>\nВыбери тариф:",
+                # Профиль
+                "profile": "💰 <b>Твой кабинет</b>\n\n👤 Имя: <b>{name}</b>\n📦 Тариф: <b>{plan}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n📅 Регистрация: <b>{date}</b>\n\n🔁 <b>Нужно больше видео?</b>\nВы можете ДОКУПИТЬ тариф:",
         
         # Помощь
         "help_text": "🧭 <b>Помощь</b>\n\nОпиши свою проблему, я постараюсь помочь скоро!",
@@ -92,8 +92,8 @@ LANG = {
         # Примеры
         "examples": "📘 <b>Video idea examples:</b>\n\n🔹 Fishermen pulling a net with strange creature\n🔹 Mushroom pickers find moving mass under leaves\n🔹 Grandma feeding capybara by window at dawn\n🔹 Soviet workers opening time capsule\n🔹 Children finding portal to another world\n🔹 Old haunted house at night\n\n💡 <b>Now create your video!</b>",
         
-        # Профиль
-        "profile": "💰 <b>Your Profile</b>\n\n👤 Name: <b>{name}</b>\n📦 Plan: <b>{plan}</b>\n🎞 Videos left: <b>{videos_left}</b>\n💳 Total paid: <b>{payments} ₽</b>\n📅 Registration: <b>{date}</b>\n\n🔁 <b>Need more videos?</b>\nChoose package:\n🐣 Trial — 3 videos → ₽490\n🎬 Basic — 10 videos → ₽1,290\n🚀 Max — 30 videos → ₽2,990",
+                # Профиль
+                "profile": "💰 <b>Your Profile</b>\n\n👤 Name: <b>{name}</b>\n📦 Plan: <b>{plan}</b>\n🎞 Videos left: <b>{videos_left}</b>\n📅 Registration: <b>{date}</b>\n\n🔁 <b>Need more videos?</b>\nYou can BUY MORE tariff:",
         
         # Помощь
         "help_text": "🧭 <b>Help</b>\n\nDescribe your problem, I'll try to help soon!",

@@ -221,14 +221,22 @@ async def update_user_tariff(user_id: int, tariff_name: str, videos_count: int, 
         
     try:
         async with db_pool.acquire() as conn:
+            # Получаем текущее количество видео
+            current_videos = await conn.fetchval(
+                "SELECT videos_left FROM users WHERE user_id = $1", user_id
+            )
+            
+            # Суммируем с новым количеством видео
+            total_videos = (current_videos or 0) + videos_count
+            
             await conn.execute('''
                 UPDATE users SET 
                     plan_name = $2, 
                     videos_left = $3, 
                     total_payments = total_payments + $4 
                 WHERE user_id = $1
-            ''', user_id, tariff_name, videos_count, payment_amount)
-        logging.info(f"✅ Updated user {user_id} tariff to {tariff_name} with {videos_count} videos")
+            ''', user_id, tariff_name, total_videos, payment_amount)
+        logging.info(f"✅ Updated user {user_id} tariff to {tariff_name}: {current_videos or 0} + {videos_count} = {total_videos} videos")
         return True
     except Exception as e:
         logging.error(f"❌ Error updating user tariff {user_id}: {e}")
@@ -482,15 +490,14 @@ async def handle_profile(message: types.Message, user_language: str):
     # Безопасное извлечение имени
     safe_name = user.get('first_name') or getattr(message.from_user, 'first_name', None) or "Not specified"
     
-    profile_text = get_text(
-        user_language,
-        "profile",
-        name=safe_name,
-        plan=user['plan_name'],
-        videos_left=user['videos_left'],
-        payments=user['total_payments'],
-        date=user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
-    )
+            profile_text = get_text(
+                user_language,
+                "profile",
+                name=safe_name,
+                plan=user['plan_name'],
+                videos_left=user['videos_left'],
+                date=user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
+            )
     
     # Создаем inline клавиатуру с кнопками покупки тарифов
     tariff_buttons = tariff_selection(user_language)
