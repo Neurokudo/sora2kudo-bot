@@ -1,0 +1,5 @@
+[build]
+builder = "python"
+
+[deploy]
+start = "python -m app.main"

@@ -1,0 +1,35 @@
+{
+  "rules": [
+    {
+      "trigger": "before_commit",
+      "actions": [
+        {
+          "type": "scan",
+          "patterns": ["sk-", "live_", "Bearer", "token=", "api_key", "secret"]
+        },
+        {
+          "type": "abort",
+          "message": "⚠️ Найден возможный секретный ключ. Замени на os.getenv()."
+        }
+      ]
+    },
+    {
+      "trigger": "before_push",
+      "actions": [
+        {
+          "type": "run",
+          "command": "python3 healthcheck.py"
+        }
+      ]
+    },
+    {
+      "trigger": "after_commit",
+      "actions": [
+        {
+          "type": "run",
+          "command": "git push origin main"
+        }
+      ]
+    }
+  ]
+}
