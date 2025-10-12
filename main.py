@@ -28,6 +28,9 @@ SUPPORT_CHAT_ID = os.getenv("SUPPORT_CHAT_ID", "-1002454833654")
 YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID")
 YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY")
 
+# Tribute configuration
+TRIBUTE_API_KEY = os.getenv("TRIBUTE_API_KEY")
+
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN not found in environment variables")
 
@@ -370,6 +373,10 @@ async def callback_handler(callback: types.CallbackQuery):
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
         await handle_payment(callback, "maximum", 2990, user_language)
+    elif callback.data == "buy_foreign":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await handle_foreign_payment(callback, user_language)
     
     await callback.answer()
 
@@ -626,6 +633,53 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
         await callback.message.edit_text("❌ Произошла ошибка. Попробуйте позже.")
         await callback.answer()
 
+async def handle_foreign_payment(callback: types.CallbackQuery, user_language: str):
+    """Обработка оплаты через Tribute (иностранные карты)"""
+    user_id = callback.from_user.id
+    
+    if not TRIBUTE_API_KEY:
+        payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n⚠️ Система оплаты иностранными картами временно недоступна.\nПопробуйте позже!"
+        await callback.message.edit_text(payment_text)
+        await callback.answer()
+        return
+    
+    try:
+        # Параметры для Tribute API
+        amount = 10.00  # USD
+        headers = {"Api-Key": TRIBUTE_API_KEY, "Content-Type": "application/json"}
+        payload = {
+            "amount": amount,
+            "currency": "USD",
+            "description": "SORA 2 Bot Tariff Payment - Foreign Card",
+            "metadata": {"user_id": str(user_id)}
+        }
+        
+        # Создаем платеж через Tribute API
+        async with aiohttp.ClientSession() as session:
+            async with session.post("https://tribute.tg/api/v1/payments", json=payload, headers=headers) as response:
+                if response.status == 200:
+                    data = await response.json()
+                    payment_url = data.get("confirmation_url")
+                    
+                    if payment_url:
+                        payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n💰 Сумма: {amount} USD\n🔗 <a href='{payment_url}'>Перейти к оплате</a>\n\nПосле успешной оплаты тариф активируется автоматически."
+                        
+                        await callback.message.edit_text(
+                            payment_text,
+                            disable_web_page_preview=True
+                        )
+                    else:
+                        await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
+                else:
+                    await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
+        
+        await callback.answer()
+        
+    except Exception as e:
+        logging.error(f"❌ Error in handle_foreign_payment: {e}")
+        await callback.message.edit_text("❌ Произошла ошибка. Попробуйте позже.")
+        await callback.answer()
+
 # === WEBHOOK HANDLERS ===
 async def handle_webhook(request):
     """Обработчик webhook от Telegram"""
@@ -684,6 +738,34 @@ async def yookassa_webhook(request):
         logging.error(f"❌ Error in YooKassa webhook: {e}")
         return web.Response(text="Error", status=500)
 
+async def tribute_webhook(request):
+    """Обработчик webhook от Tribute"""
+    try:
+        data = await request.json()
+        
+        # Проверяем тип события
+        if data.get('event') == 'payment.succeeded':
+            # Получаем данные платежа
+            metadata = data.get('metadata', {})
+            user_id = int(metadata.get('user_id'))
+            amount = data.get('amount')
+            
+            # Обновляем тариф пользователя (даем 10 видео за $10)
+            await update_user_tariff(user_id, "Foreign Card", 10, int(amount))
+            
+            # Отправляем уведомление пользователю
+            try:
+                success_text = f"✅ <b>Оплата иностранной картой прошла успешно!</b>\n\n🎬 Тариф: <b>Foreign Card</b>\n🎞 Видео: <b>10</b>\n💰 Сумма: <b>{amount} USD</b>\n\n🎉 Теперь вы можете создавать видео!"
+                await bot.send_message(user_id, success_text)
+            except Exception as e:
+                logging.error(f"❌ Error sending success message to user {user_id}: {e}")
+        
+        return web.Response(text="OK")
+        
+    except Exception as e:
+        logging.error(f"❌ Error in Tribute webhook: {e}")
+        return web.Response(text="Error", status=500)
+
 # === WEB APPLICATION ===
 def create_app():
     """Создание веб-приложения"""
@@ -692,6 +774,7 @@ def create_app():
     # Маршруты
     app.router.add_post("/webhook", handle_webhook)
     app.router.add_post("/yookassa_webhook", yookassa_webhook)
+    app.router.add_post("/tribute_webhook", tribute_webhook)
     app.router.add_get("/health", health)
     
     return app

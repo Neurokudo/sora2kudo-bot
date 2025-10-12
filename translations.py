@@ -46,6 +46,7 @@ LANG = {
         "btn_buy_trial": "🐣 Купить Пробный (₽490)",
         "btn_buy_basic": "🎬 Купить Базовый (₽1 290)", 
         "btn_buy_maximum": "🚀 Купить Максимум (₽2 990)",
+        "btn_buy_foreign": "💳 Иностранная карта",
         "btn_buy_tariff": "💳 Купить тариф",
         "tariff_selection": "💳 <b>Выберите тариф для покупки:</b>",
         
@@ -92,6 +93,14 @@ LANG = {
         # Помощь
         "help_text": "🧭 <b>Help</b>\n\nDescribe your problem, I'll try to help soon!",
         "support_sent": "✅ Message sent. I'll try to respond as soon as possible!",
+        
+        # Кнопки покупки тарифов
+        "btn_buy_trial": "🐣 Buy Trial (₽490)",
+        "btn_buy_basic": "🎬 Buy Basic (₽1 290)", 
+        "btn_buy_maximum": "🚀 Buy Maximum (₽2 990)",
+        "btn_buy_foreign": "💳 Foreign Card",
+        "btn_buy_tariff": "💳 Buy tariff",
+        "tariff_selection": "💳 <b>Choose tariff to purchase:</b>",
         
         # Общие фразы
         "use_buttons": "💡 Use menu buttons or choose video orientation!",

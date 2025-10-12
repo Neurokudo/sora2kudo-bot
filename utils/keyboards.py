@@ -70,6 +70,12 @@ def tariff_selection(language: str = "en") -> InlineKeyboardMarkup:
                 text=get_text(language, "btn_buy_maximum"), 
                 callback_data="buy_maximum"
             )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_buy_foreign"), 
+                callback_data="buy_foreign"
+            )
         ]
     ])
     return markup
