@@ -45,9 +45,15 @@ async def init_database():
     
     try:
         logging.info("✅ Connecting to DATABASE_URL...")
+        logging.info(f"🔍 DATABASE_URL format: {DATABASE_URL[:20]}...{DATABASE_URL[-10:]}")
         
-        # Подключение к базе данных
-        db_pool = await asyncpg.create_pool(DATABASE_URL)
+        # Подключение к базе данных с таймаутом
+        db_pool = await asyncpg.create_pool(
+            DATABASE_URL,
+            min_size=1,
+            max_size=10,
+            command_timeout=10
+        )
         logging.info("✅ Database connected successfully.")
         
         # Создание таблицы users
@@ -208,11 +214,14 @@ async def cmd_start(message: types.Message):
         )
         return
     
+    # Безопасное извлечение имени пользователя
+    safe_first_name = getattr(message.from_user, 'first_name', None) or "friend"
+    
     # Формируем приветственное сообщение на языке пользователя
     welcome_text = get_text(
         user_language, 
         "welcome",
-        name=first_name or get_text(user_language, "friend", default="friend"),
+        name=safe_first_name,
         plan=user.get('plan_name', 'trial'),
         videos_left=user.get('videos_left', 3)
     )
@@ -249,7 +258,7 @@ async def callback_handler(callback: types.CallbackQuery):
     # Обработка выбора языка
     if callback.data.startswith("lang_"):
         language = callback.data.replace("lang_", "")
-        first_name = callback.from_user.first_name
+        first_name = getattr(callback.from_user, 'first_name', None) or "friend"
         
         # Обновляем язык пользователя в БД
         await update_user_language(user_id, language)
@@ -267,7 +276,7 @@ async def callback_handler(callback: types.CallbackQuery):
         welcome_text = get_text(
             user_language, 
             "welcome",
-            name=first_name or "friend",
+            name=first_name,
             plan=user.get('plan_name', 'trial') if user else 'trial',
             videos_left=user.get('videos_left', 3) if user else 3
         )
@@ -414,10 +423,13 @@ async def handle_profile(message: types.Message, user_language: str):
         await message.answer(get_text(user_language, "error_getting_data"))
         return
     
+    # Безопасное извлечение имени
+    safe_name = user.get('first_name') or getattr(message.from_user, 'first_name', None) or "Not specified"
+    
     profile_text = get_text(
         user_language,
         "profile",
-        name=user['first_name'] or get_text(user_language, "not_specified", default="Not specified"),
+        name=safe_name,
         plan=user['plan_name'],
         videos_left=user['videos_left'],
         payments=user['total_payments'],
@@ -488,9 +500,12 @@ async def handle_webhook(request):
         update = types.Update(**data)
         await dp.feed_update(bot, update)
         return web.Response()
+    except KeyError as e:
+        logging.error(f"❌ Ошибка в webhook (KeyError): {e}")
+        return web.Response(status=200)  # Возвращаем 200 чтобы Telegram не повторял запрос
     except Exception as e:
         logging.error(f"❌ Ошибка в webhook: {e}")
-        return web.Response(status=500)
+        return web.Response(status=200)  # Возвращаем 200 чтобы Telegram не повторял запрос
 
 async def health(request):
     """Health check для Railway"""
