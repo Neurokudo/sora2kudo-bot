@@ -2,6 +2,7 @@ import os
 import logging
 import asyncio
 import uuid
+import json
 from datetime import datetime
 import aiohttp
 from aiohttp import web
@@ -31,6 +32,10 @@ YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY")
 
 # Tribute configuration
 TRIBUTE_API_KEY = os.getenv("TRIBUTE_API_KEY")
+
+# Sora 2 API configuration
+SORA_API_KEY = os.getenv("SORA_API_KEY")
+SORA_API_URL = os.getenv("SORA_API_URL", "https://api.sora2.com/v1/videos")
 
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN not found in environment variables")
@@ -241,6 +246,63 @@ async def update_user_tariff(user_id: int, tariff_name: str, videos_count: int, 
     except Exception as e:
         logging.error(f"❌ Error updating user tariff {user_id}: {e}")
         return False
+
+async def create_sora_video(description: str, orientation: str, user_id: int):
+    """Создание видео через Sora 2 API"""
+    if not SORA_API_KEY:
+        logging.warning("⚠️ SORA_API_KEY not found, using demo mode")
+        return None, "demo_mode"
+    
+    try:
+        # Подготавливаем параметры для Sora 2 API
+        aspect_ratio = "9:16" if orientation == "vertical" else "16:9"
+        
+        payload = {
+            "prompt": description,
+            "aspect_ratio": aspect_ratio,
+            "duration": 5,  # 5 секунд
+            "quality": "hd",
+            "metadata": {
+                "user_id": str(user_id),
+                "orientation": orientation
+            }
+        }
+        
+        headers = {
+            "Authorization": f"Bearer {SORA_API_KEY}",
+            "Content-Type": "application/json",
+            "User-Agent": "SORA2Bot/1.0"
+        }
+        
+        logging.info(f"🎬 Creating Sora video for user {user_id}: {description[:50]}...")
+        
+        # Отправляем запрос к Sora 2 API
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=120)) as session:
+            async with session.post(SORA_API_URL, json=payload, headers=headers) as response:
+                response_text = await response.text()
+                logging.info(f"🎬 Sora API response status: {response.status}")
+                
+                if response.status == 200:
+                    data = await response.json()
+                    video_url = data.get("video_url")
+                    video_id = data.get("id")
+                    
+                    if video_url:
+                        logging.info(f"✅ Sora video created successfully: {video_id}")
+                        return video_url, video_id
+                    else:
+                        logging.error(f"❌ No video URL in response: {data}")
+                        return None, "no_url"
+                else:
+                    logging.error(f"❌ Sora API error: {response.status} - {response_text}")
+                    return None, f"api_error_{response.status}"
+                    
+    except aiohttp.ClientError as e:
+        logging.error(f"❌ Network error creating Sora video: {e}")
+        return None, "network_error"
+    except Exception as e:
+        logging.error(f"❌ Unexpected error creating Sora video: {e}")
+        return None, "unknown_error"
 
 # === GLOBAL STATES ===
 user_waiting_for_support = set()
@@ -528,7 +590,7 @@ async def handle_video_description(message: types.Message, user_language: str):
     
     orientation_text = get_text(user_language, f"orientation_{orientation}_name")
     
-    # Отправляем сообщение о том, что видео создается
+    # Отправляем сообщение о том, что видео принято
     await message.answer(
         get_text(
             user_language,
@@ -540,18 +602,66 @@ async def handle_video_description(message: types.Message, user_language: str):
         reply_markup=main_menu(user_language)
     )
     
-    # Симулируем создание видео (в реальности здесь будет API Sora 2)
-    await asyncio.sleep(5)  # Имитируем время создания видео
-    
-    # Отправляем сообщение о готовности видео
-    await message.answer(
-        get_text(
-            user_language,
-            "video_ready",
-            videos_left=user['videos_left'] - 1
-        ),
+    # Отправляем сообщение о создании видео
+    creating_msg = await message.answer(
+        get_text(user_language, "video_creating"),
         reply_markup=main_menu(user_language)
     )
+    
+    try:
+        # Создаем видео через Sora 2 API
+        video_url, video_id = await create_sora_video(text, orientation, user_id)
+        
+        if video_url and video_id != "demo_mode":
+            # Успешно создано через Sora 2 API
+            try:
+                # Отправляем видео
+                await message.answer_video(
+                    video=video_url,
+                    caption=get_text(
+                        user_language,
+                        "video_ready",
+                        videos_left=user['videos_left'] - 1
+                    ),
+                    reply_markup=main_menu(user_language)
+                )
+                logging.info(f"✅ Video sent to user {user_id}: {video_id}")
+            except Exception as e:
+                logging.error(f"❌ Error sending video to user {user_id}: {e}")
+                # Если не удалось отправить видео, отправляем ссылку
+                await message.answer(
+                    f"🎬 <b>Ваше видео готово!</b>\n\n📹 <a href='{video_url}'>Смотреть видео</a>\n\n" + 
+                    get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1),
+                    reply_markup=main_menu(user_language),
+                    parse_mode="HTML"
+                )
+        else:
+            # Demo режим или ошибка
+            if video_id == "demo_mode":
+                # В demo режиме симулируем создание
+                await asyncio.sleep(3)
+                await creating_msg.edit_text(
+                    "🎬 <b>Демо режим</b>\n\n⚠️ Sora 2 API не настроен\n🔄 В реальной версии здесь будет ваше видео\n\n" +
+                    get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1),
+                    reply_markup=main_menu(user_language)
+                )
+            else:
+                # Ошибка создания
+                await creating_msg.edit_text(
+                    get_text(user_language, "video_error", videos_left=user['videos_left'] - 1),
+                    reply_markup=main_menu(user_language)
+                )
+                # Возвращаем видео обратно
+                await update_user_videos(user_id, user['videos_left'])
+                
+    except Exception as e:
+        logging.error(f"❌ Critical error in handle_video_description: {e}")
+        await creating_msg.edit_text(
+            get_text(user_language, "video_error", videos_left=user['videos_left'] - 1),
+            reply_markup=main_menu(user_language)
+        )
+        # Возвращаем видео обратно
+        await update_user_videos(user_id, user['videos_left'])
     
     # Очищаем состояние
     if user_id in user_waiting_for_video_orientation:

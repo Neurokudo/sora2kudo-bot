@@ -29,8 +29,10 @@ LANG = {
         
         # Создание видео
         "create_video": "🎬 <b>Создание видео</b>\n\n📐 Ориентация: <b>{orientation}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n\n✏️ <b>Опиши сцену простыми словами:</b>\nКто в кадре, где происходит действие, что они делают, какая атмосфера и погода.\nДобавь, если нужно, детали: одежду, эмоции, свет, фон.\n\n📸 <b>Пример:</b>\n<code>Рыбаки в лодке поймали русалку, один в тельняшке тянет сеть, русалка шипит и вырывается, съёмка на телефон, вода мутная, туман.</code>",
-        "video_accepted": "🎬 <b>Принято описание!</b>\n\n📝 <b>Описание:</b> {description}\n📐 <b>Ориентация:</b> {orientation}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n⏳ <b>Ваше видео создается, ожидайте...</b>",
-        "video_ready": "🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n🎞 Осталось видео: <b>{videos_left}</b>\n\n💡 Для продолжения создания пришлите новое описание!",
+                "video_accepted": "🎬 <b>Принято описание!</b>\n\n📝 <b>Описание:</b> {description}\n📐 <b>Ориентация:</b> {orientation}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n⏳ <b>Ваше видео отправлено в очередь на создание...</b>",
+                "video_ready": "🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <b>Видео отправлено в чат выше</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n\n💡 Для продолжения создания пришлите новое описание!",
+                "video_creating": "🎬 <b>Создание видео...</b>\n\n⏳ Обрабатываем ваше описание через Sora 2\n🔄 Это может занять 2-3 минуты\n\n📹 Видео будет отправлено в этот чат как только будет готово!",
+                "video_error": "❌ <b>Ошибка создания видео</b>\n\n⚠️ Не удалось создать видео по вашему описанию\n🔄 Попробуйте изменить описание или обратитесь в поддержку\n\n🎞 Осталось видео: <b>{videos_left}</b>",
         "no_videos_left": "🚫 <b>У тебя закончились видео!</b>\n\n💳 Купи новый тариф в <b>💰 Кабинет</b>",
         
         # Примеры
@@ -85,8 +87,10 @@ LANG = {
         
         # Создание видео
         "create_video": "🎬 <b>Creating Video</b>\n\n📐 Orientation: <b>{orientation}</b>\n🎞 Videos left: <b>{videos_left}</b>\n\n✏️ <b>Describe the scene in simple words:</b>\nWho is in the frame, where the action takes place, what they are doing, atmosphere and weather.\nAdd details if needed: clothing, emotions, lighting, background.\n\n📸 <b>Example:</b>\n<code>Fishermen in a boat caught a mermaid, one in a striped shirt pulls the net, mermaid hisses and breaks free, phone recording, murky water, fog.</code>",
-        "video_accepted": "🎬 <b>Description accepted!</b>\n\n📝 <b>Description:</b> {description}\n📐 <b>Orientation:</b> {orientation}\n🎞 <b>Videos left:</b> {videos_left}\n\n⏳ <b>Your video is being created, please wait...</b>",
-        "video_ready": "🎉 <b>Your video is ready!</b>\n\n🎬 Video successfully created via Sora 2\n🎞 Videos left: <b>{videos_left}</b>\n\n💡 To continue creating, send a new description!",
+                "video_accepted": "🎬 <b>Description accepted!</b>\n\n📝 <b>Description:</b> {description}\n📐 <b>Orientation:</b> {orientation}\n🎞 <b>Videos left:</b> {videos_left}\n\n⏳ <b>Your video has been queued for creation...</b>",
+                "video_ready": "🎉 <b>Your video is ready!</b>\n\n🎬 Video successfully created via Sora 2\n📹 <b>Video sent to chat above</b>\n🎞 Videos left: <b>{videos_left}</b>\n\n💡 To continue creating, send a new description!",
+                "video_creating": "🎬 <b>Creating video...</b>\n\n⏳ Processing your description through Sora 2\n🔄 This may take 2-3 minutes\n\n📹 Video will be sent to this chat once ready!",
+                "video_error": "❌ <b>Video creation error</b>\n\n⚠️ Could not create video from your description\n🔄 Try changing the description or contact support\n\n🎞 Videos left: <b>{videos_left}</b>",
         "no_videos_left": "🚫 <b>You're out of videos!</b>\n\n💳 Buy a new package in <b>💰 Profile</b>",
         
         # Примеры
