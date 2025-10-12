@@ -107,6 +107,17 @@ async def init_database():
                     ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'en'
                 ''')
                 logging.info("✅ Language column checked/added.")
+                
+                # Обновляем всех пользователей с trial на "Без тарифа"
+                await conn.execute('''
+                    UPDATE users SET plan_name = 'Без тарифа', videos_left = 0 
+                    WHERE plan_name = 'trial'
+                ''')
+                trial_users_updated = await conn.fetchval('''
+                    SELECT COUNT(*) FROM users WHERE plan_name = 'Без тарифа'
+                ''')
+                if trial_users_updated and trial_users_updated > 0:
+                    logging.info(f"✅ Updated {trial_users_updated} users from 'trial' to 'Без тарифа'")
             
             # Создание индекса для быстрого поиска по user_id
             await conn.execute('''
@@ -257,25 +268,36 @@ async def cmd_start(message: types.Message):
     # Безопасное извлечение имени пользователя
     safe_first_name = getattr(message.from_user, 'first_name', None) or "friend"
     
-    # Формируем приветственное сообщение на языке пользователя
-    welcome_text = get_text(
-        user_language, 
-        "welcome",
-        name=safe_first_name,
-        plan=user.get('plan_name', 'trial'),
-        videos_left=user.get('videos_left', 3)
-    )
+    # Проверяем, есть ли у пользователя тариф
+    user_plan = user.get('plan_name', 'Без тарифа')
+    user_videos_left = user.get('videos_left', 0)
     
-    await message.answer(
-        welcome_text,
-        reply_markup=main_menu(user_language)
-    )
-    
-    # Показываем кнопки ориентации
-    await message.answer(
-        get_text(user_language, "choose_orientation"),
-        reply_markup=orientation_menu(user_language)
-    )
+    if user_plan == 'Без тарифа' and user_videos_left == 0:
+        # Показываем мотивирующее сообщение для покупки тарифа
+        await message.answer(
+            get_text(user_language, "no_tariff_message"),
+            reply_markup=tariff_selection(user_language)
+        )
+    else:
+        # Обычное приветствие для пользователей с тарифом
+        welcome_text = get_text(
+            user_language, 
+            "welcome",
+            name=safe_first_name,
+            plan=user_plan,
+            videos_left=user_videos_left
+        )
+        
+        await message.answer(
+            welcome_text,
+            reply_markup=main_menu(user_language)
+        )
+        
+        # Показываем кнопки ориентации
+        await message.answer(
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language)
+        )
 
 # === /help ===
 @dp.message(Command("help"))

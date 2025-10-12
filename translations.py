@@ -6,7 +6,7 @@
 LANG = {
     "ru": {
         # Основные сообщения
-        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n💡 <b>Выбери действие:</b>",
+        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🔥 <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>\n\n💡 <b>Выбери действие:</b>",
         "choose_action": "💡 <b>Выбери действие:</b>",
         "choose_language": "🌍 <b>Выберите язык:</b>",
         "lang_selected": "✅ <b>Язык изменён на Русский.</b>",
@@ -51,6 +51,9 @@ LANG = {
         "btn_buy_tariff": "💳 Купить тариф",
         "tariff_selection": "💳 <b>Выберите тариф для покупки:</b>",
         
+        # Сообщения для пользователей без тарифа
+        "no_tariff_message": "🚀 <b>Начни создавать вирусные видео прямо сейчас!</b>\n\n💎 <b>Выбери тариф и получи доступ к SORA 2:</b>\n🐣 <b>Пробный</b> — 3 видео за ₽490\n🎬 <b>Базовый</b> — 10 видео за ₽1 290\n🚀 <b>Максимум</b> — 30 видео за ₽2 990\n\n🔥 <b>Создавай крутые видео и радуй друзей и подписчиков!</b>",
+        
         # Общие фразы
         "use_buttons": "💡 Используй кнопки меню или выбери ориентацию видео!",
         "error_restart": "❌ Ошибка. Попробуй /start",
@@ -59,7 +62,7 @@ LANG = {
     
     "en": {
         # Основные сообщения
-        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n💡 <b>Choose an action:</b>",
+        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🔥 <b>Create amazing viral videos and delight your friends and followers!</b>\n\n💡 <b>Choose an action:</b>",
         "choose_action": "💡 <b>Choose an action:</b>",
         "choose_language": "🌍 <b>Choose your language:</b>",
         "lang_selected": "✅ <b>Language set to English.</b>",
@@ -103,6 +106,9 @@ LANG = {
         "btn_buy_foreign": "💳 Foreign Card",
         "btn_buy_tariff": "💳 Buy tariff",
         "tariff_selection": "💳 <b>Choose tariff to purchase:</b>",
+        
+        # Сообщения для пользователей без тарифа
+        "no_tariff_message": "🚀 <b>Start creating viral videos right now!</b>\n\n💎 <b>Choose a tariff and get access to SORA 2:</b>\n🐣 <b>Trial</b> — 3 videos for ₽490\n🎬 <b>Basic</b> — 10 videos for ₽1 290\n🚀 <b>Maximum</b> — 30 videos for ₽2 990\n\n🔥 <b>Create amazing videos and delight your friends and followers!</b>",
         
         # Общие фразы
         "use_buttons": "💡 Use menu buttons or choose video orientation!",

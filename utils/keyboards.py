@@ -8,6 +8,7 @@ from translations import get_text, LANGUAGE_BUTTONS
 def main_menu(language: str = "en") -> ReplyKeyboardMarkup:
     """Главное меню с учетом языка"""
     kb = [
+        [KeyboardButton(text=get_text(language, "btn_create_video"))],
         [KeyboardButton(text=get_text(language, "btn_examples")), 
          KeyboardButton(text=get_text(language, "btn_profile"))],
         [KeyboardButton(text=get_text(language, "btn_buy_tariff"))],
