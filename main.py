@@ -830,49 +830,64 @@ def create_app():
 # === MAIN FUNCTION ===
 async def start_bot():
     """Запуск бота в webhook или polling режиме"""
-    logging.info("🚀 Launching sora2kudo-bot...")
+    try:
+        logging.info("🚀 Launching sora2kudo-bot...")
+        logging.info(f"🔧 BOT_TOKEN: {'✅ Set' if BOT_TOKEN else '❌ Missing'}")
+        logging.info(f"🔧 PUBLIC_URL: {'✅ Set' if PUBLIC_URL else '❌ Missing'}")
+        logging.info(f"🔧 DATABASE_URL: {'✅ Set' if DATABASE_URL else '❌ Missing'}")
+        logging.info(f"🔧 TELEGRAM_MODE: {TELEGRAM_MODE}")
+        
+        # Инициализация базы данных
+        db_ready = await init_database()
+        if not db_ready:
+            logging.warning("⚠️ Database initialization failed, bot will continue with limited functionality")
+    except Exception as e:
+        logging.error(f"❌ Error in start_bot initialization: {e}")
+        raise
     
-    # Инициализация базы данных
-    db_ready = await init_database()
-    if not db_ready:
-        logging.warning("⚠️ Database initialization failed, bot will continue with limited functionality")
-    
-    if TELEGRAM_MODE == "webhook":
-        # Webhook режим для Railway
-        logging.info(f"🌐 Setting up webhook: {PUBLIC_URL}/webhook")
-        await bot.set_webhook(f"{PUBLIC_URL}/webhook")
-        logging.info("✅ Webhook установлен")
-        
-        # Создаем веб-приложение
-        app = create_app()
-        
-        # Запускаем веб-сервер
-        logging.info(f"🚀 Starting web server on port {PORT}")
-        runner = web.AppRunner(app)
-        await runner.setup()
-        site = web.TCPSite(runner, '0.0.0.0', PORT)
-        await site.start()
-        
-        logging.info("🚀 Bot is running.")
-        
-        # Держим сервер запущенным
-        try:
-            while True:
-                await asyncio.sleep(1)
-        except KeyboardInterrupt:
-            logging.info("🛑 Stopping bot...")
-            await runner.cleanup()
-            if db_pool:
-                await db_pool.close()
-    else:
-        # Polling режим для локальной разработки
-        logging.info("🔄 Starting bot in polling mode")
-        try:
-            await dp.start_polling(bot)
-        except KeyboardInterrupt:
-            logging.info("🛑 Stopping bot...")
-            if db_pool:
-                await db_pool.close()
+    try:
+        if TELEGRAM_MODE == "webhook":
+            # Webhook режим для Railway
+            logging.info(f"🌐 Setting up webhook: {PUBLIC_URL}/webhook")
+            await bot.set_webhook(f"{PUBLIC_URL}/webhook")
+            logging.info("✅ Webhook установлен")
+            
+            # Создаем веб-приложение
+            app = create_app()
+            
+            # Запускаем веб-сервер
+            logging.info(f"🚀 Starting web server on port {PORT}")
+            runner = web.AppRunner(app)
+            await runner.setup()
+            site = web.TCPSite(runner, '0.0.0.0', PORT)
+            await site.start()
+            
+            logging.info("🚀 Bot is running.")
+            
+            # Держим сервер запущенным
+            try:
+                while True:
+                    await asyncio.sleep(1)
+            except KeyboardInterrupt:
+                logging.info("🛑 Stopping bot...")
+                await runner.cleanup()
+                if db_pool:
+                    await db_pool.close()
+        else:
+            # Polling режим для локальной разработки
+            logging.info("🔄 Starting bot in polling mode")
+            try:
+                await dp.start_polling(bot)
+            except KeyboardInterrupt:
+                logging.info("🛑 Stopping bot...")
+                if db_pool:
+                    await db_pool.close()
+    except Exception as e:
+        logging.error(f"❌ Critical error in start_bot: {e}")
+        logging.error(f"❌ Error type: {type(e).__name__}")
+        import traceback
+        logging.error(f"❌ Traceback: {traceback.format_exc()}")
+        raise
 
 if __name__ == "__main__":
     asyncio.run(start_bot())
