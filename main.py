@@ -488,7 +488,10 @@ async def handle_profile(message: types.Message, user_language: str):
         date=user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
     )
     
-    await message.answer(profile_text, reply_markup=main_menu(user_language))
+    # Создаем inline клавиатуру с кнопками покупки тарифов
+    tariff_buttons = tariff_selection(user_language)
+    
+    await message.answer(profile_text, reply_markup=tariff_buttons)
 
 async def handle_video_description(message: types.Message, user_language: str):
     """Обработка описания видео"""
