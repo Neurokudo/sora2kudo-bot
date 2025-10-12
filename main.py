@@ -490,14 +490,14 @@ async def handle_profile(message: types.Message, user_language: str):
     # Безопасное извлечение имени
     safe_name = user.get('first_name') or getattr(message.from_user, 'first_name', None) or "Not specified"
     
-            profile_text = get_text(
-                user_language,
-                "profile",
-                name=safe_name,
-                plan=user['plan_name'],
-                videos_left=user['videos_left'],
-                date=user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
-            )
+    profile_text = get_text(
+        user_language,
+        "profile",
+        name=safe_name,
+        plan=user['plan_name'],
+        videos_left=user['videos_left'],
+        date=user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
+    )
     
     # Создаем inline клавиатуру с кнопками покупки тарифов
     tariff_buttons = tariff_selection(user_language)
