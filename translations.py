@@ -6,7 +6,7 @@
 LANG = {
     "ru": {
         # Основные сообщения
-        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\nЗдесь ты можешь создавать видео по описанию — просто напиши, что хочешь снять.\n\n💡 <b>Выбери действие:</b>",
+        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🎬 <b>Опиши сцену простыми словами:</b>\nКто в кадре, где происходит действие, что они делают, какая атмосфера и погода.\nДобавь, если нужно, детали: одежду, эмоции, свет, фон.\n\n📸 <b>Пример:</b>\nРыбаки в лодке поймали русалку, один в тельняшке тянет сеть, русалка шипит и вырывается, съёмка на телефон, вода мутная, туман.\n\n💡 <b>Выбери действие:</b>",
         "choose_action": "💡 <b>Выбери действие:</b>",
         "choose_language": "🌍 <b>Выберите язык:</b>",
         "lang_selected": "✅ <b>Язык изменён на Русский.</b>",
@@ -28,8 +28,9 @@ LANG = {
         "orientation_horizontal_name": "горизонтальная",
         
         # Создание видео
-        "create_video": "🎬 <b>Создание видео</b>\n\n📐 Ориентация: <b>{orientation}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n\n✏️ <b>Опиши, что хочешь снять:</b>\nНапример: <code>Рыбаки вытаскивают сеть, в ней русалка</code>",
-        "video_accepted": "🎬 <b>Принято описание!</b>\n\n📝 <b>Описание:</b> {description}\n📐 <b>Ориентация:</b> {orientation}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n⏳ Видео создается через Sora 2...\n📨 Результат будет отправлен сюда!",
+        "create_video": "🎬 <b>Создание видео</b>\n\n📐 Ориентация: <b>{orientation}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n\n✏️ <b>Опиши сцену простыми словами:</b>\nКто в кадре, где происходит действие, что они делают, какая атмосфера и погода.\nДобавь, если нужно, детали: одежду, эмоции, свет, фон.\n\n📸 <b>Пример:</b>\n<code>Рыбаки в лодке поймали русалку, один в тельняшке тянет сеть, русалка шипит и вырывается, съёмка на телефон, вода мутная, туман.</code>",
+        "video_accepted": "🎬 <b>Принято описание!</b>\n\n📝 <b>Описание:</b> {description}\n📐 <b>Ориентация:</b> {orientation}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n⏳ <b>Ваше видео создается, ожидайте...</b>",
+        "video_ready": "🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n🎞 Осталось видео: <b>{videos_left}</b>\n\n💡 Для продолжения создания пришлите новое описание!",
         "no_videos_left": "🚫 <b>У тебя закончились видео!</b>\n\n💳 Купи новый тариф в <b>💰 Кабинет</b>",
         
         # Примеры
@@ -58,7 +59,7 @@ LANG = {
     
     "en": {
         # Основные сообщения
-        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\nHere you can create videos from descriptions — just write what you want to film.\n\n💡 <b>Choose an action:</b>",
+        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🎬 <b>Describe the scene in simple words:</b>\nWho is in the frame, where the action takes place, what they are doing, atmosphere and weather.\nAdd details if needed: clothing, emotions, lighting, background.\n\n📸 <b>Example:</b>\nFishermen in a boat caught a mermaid, one in a striped shirt pulls the net, mermaid hisses and breaks free, phone recording, murky water, fog.\n\n💡 <b>Choose an action:</b>",
         "choose_action": "💡 <b>Choose an action:</b>",
         "choose_language": "🌍 <b>Choose your language:</b>",
         "lang_selected": "✅ <b>Language set to English.</b>",
@@ -80,8 +81,9 @@ LANG = {
         "orientation_horizontal_name": "horizontal",
         
         # Создание видео
-        "create_video": "🎬 <b>Creating Video</b>\n\n📐 Orientation: <b>{orientation}</b>\n🎞 Videos left: <b>{videos_left}</b>\n\n✏️ <b>Describe what you want to film:</b>\nExample: <code>Fishermen pulling a net with a mermaid inside</code>",
-        "video_accepted": "🎬 <b>Description accepted!</b>\n\n📝 <b>Description:</b> {description}\n📐 <b>Orientation:</b> {orientation}\n🎞 <b>Videos left:</b> {videos_left}\n\n⏳ Video is being created via Sora 2...\n📨 Result will be sent here!",
+        "create_video": "🎬 <b>Creating Video</b>\n\n📐 Orientation: <b>{orientation}</b>\n🎞 Videos left: <b>{videos_left}</b>\n\n✏️ <b>Describe the scene in simple words:</b>\nWho is in the frame, where the action takes place, what they are doing, atmosphere and weather.\nAdd details if needed: clothing, emotions, lighting, background.\n\n📸 <b>Example:</b>\n<code>Fishermen in a boat caught a mermaid, one in a striped shirt pulls the net, mermaid hisses and breaks free, phone recording, murky water, fog.</code>",
+        "video_accepted": "🎬 <b>Description accepted!</b>\n\n📝 <b>Description:</b> {description}\n📐 <b>Orientation:</b> {orientation}\n🎞 <b>Videos left:</b> {videos_left}\n\n⏳ <b>Your video is being created, please wait...</b>",
+        "video_ready": "🎉 <b>Your video is ready!</b>\n\n🎬 Video successfully created via Sora 2\n🎞 Videos left: <b>{videos_left}</b>\n\n💡 To continue creating, send a new description!",
         "no_videos_left": "🚫 <b>You're out of videos!</b>\n\n💳 Buy a new package in <b>💰 Profile</b>",
         
         # Примеры

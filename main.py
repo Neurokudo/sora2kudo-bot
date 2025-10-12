@@ -525,12 +525,26 @@ async def handle_video_description(message: types.Message, user_language: str):
     
     orientation_text = get_text(user_language, f"orientation_{orientation}_name")
     
+    # Отправляем сообщение о том, что видео создается
     await message.answer(
         get_text(
             user_language,
             "video_accepted",
             description=text,
             orientation=orientation_text,
+            videos_left=user['videos_left'] - 1
+        ),
+        reply_markup=main_menu(user_language)
+    )
+    
+    # Симулируем создание видео (в реальности здесь будет API Sora 2)
+    await asyncio.sleep(5)  # Имитируем время создания видео
+    
+    # Отправляем сообщение о готовности видео
+    await message.answer(
+        get_text(
+            user_language,
+            "video_ready",
             videos_left=user['videos_left'] - 1
         ),
         reply_markup=main_menu(user_language)
