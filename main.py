@@ -272,12 +272,17 @@ async def cmd_start(message: types.Message):
     user_plan = user.get('plan_name', 'Без тарифа')
     user_videos_left = user.get('videos_left', 0)
     
-    if user_plan == 'Без тарифа' and user_videos_left == 0:
-        # Показываем мотивирующее сообщение для покупки тарифа
-        await message.answer(
-            get_text(user_language, "no_tariff_message"),
-            reply_markup=tariff_selection(user_language)
-        )
+            if user_plan == 'Без тарифа' and user_videos_left == 0:
+                # Показываем мотивирующее сообщение для покупки тарифа
+                await message.answer(
+                    get_text(user_language, "no_tariff_message"),
+                    reply_markup=tariff_selection(user_language)
+                )
+                # Также показываем основное меню
+                await message.answer(
+                    get_text(user_language, "choose_action"),
+                    reply_markup=main_menu(user_language)
+                )
     else:
         # Обычное приветствие для пользователей с тарифом
         welcome_text = get_text(
@@ -649,7 +654,10 @@ async def handle_foreign_payment(callback: types.CallbackQuery, user_language: s
     """Обработка оплаты через Tribute (иностранные карты)"""
     user_id = callback.from_user.id
     
+    logging.info(f"🌍 Processing foreign payment for user {user_id}")
+    
     if not TRIBUTE_API_KEY:
+        logging.warning("⚠️ TRIBUTE_API_KEY not found")
         payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n⚠️ Система оплаты иностранными картами временно недоступна.\nПопробуйте позже!"
         await callback.message.edit_text(payment_text)
         await callback.answer()
@@ -658,39 +666,65 @@ async def handle_foreign_payment(callback: types.CallbackQuery, user_language: s
     try:
         # Параметры для Tribute API
         amount = 10.00  # USD
-        headers = {"Api-Key": TRIBUTE_API_KEY, "Content-Type": "application/json"}
+        headers = {
+            "Api-Key": TRIBUTE_API_KEY, 
+            "Content-Type": "application/json",
+            "User-Agent": "SORA2Bot/1.0"
+        }
         payload = {
             "amount": amount,
             "currency": "USD",
             "description": "SORA 2 Bot Tariff Payment - Foreign Card",
-            "metadata": {"user_id": str(user_id)}
+            "metadata": {"user_id": str(user_id), "tariff": "foreign"}
         }
         
+        logging.info(f"🌍 Creating Tribute payment: {payload}")
+        
         # Создаем платеж через Tribute API
-        async with aiohttp.ClientSession() as session:
-            async with session.post("https://tribute.tg/api/v1/payments", json=payload, headers=headers) as response:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
+            async with session.post(
+                "https://tribute.tg/api/v1/payments", 
+                json=payload, 
+                headers=headers
+            ) as response:
+                
+                response_text = await response.text()
+                logging.info(f"🌍 Tribute API response status: {response.status}")
+                logging.info(f"🌍 Tribute API response: {response_text}")
+                
                 if response.status == 200:
-                    data = await response.json()
-                    payment_url = data.get("confirmation_url")
-                    
-                    if payment_url:
-                        payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n💰 Сумма: {amount} USD\n\nПосле успешной оплаты тариф активируется автоматически."
+                    try:
+                        data = await response.json()
+                        payment_url = data.get("confirmation_url")
                         
-                        # Создаем inline кнопку для оплаты
-                        pay_button = InlineKeyboardMarkup(inline_keyboard=[
-                            [InlineKeyboardButton(text="💳 ОПЛАТИТЬ", url=payment_url)]
-                        ])
-                        
-                        await callback.message.edit_text(payment_text, reply_markup=pay_button)
-                    else:
-                        await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
+                        if payment_url:
+                            payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n💰 Сумма: {amount} USD\n\nПосле успешной оплаты тариф активируется автоматически."
+                            
+                            # Создаем inline кнопку для оплаты
+                            pay_button = InlineKeyboardMarkup(inline_keyboard=[
+                                [InlineKeyboardButton(text="💳 ОПЛАТИТЬ", url=payment_url)]
+                            ])
+                            
+                            await callback.message.edit_text(payment_text, reply_markup=pay_button)
+                            logging.info(f"✅ Foreign payment created successfully for user {user_id}")
+                        else:
+                            logging.error(f"❌ No payment URL in response: {data}")
+                            await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
+                    except Exception as json_error:
+                        logging.error(f"❌ JSON parsing error: {json_error}")
+                        await callback.message.edit_text("❌ Ошибка обработки ответа. Попробуйте позже.")
                 else:
+                    logging.error(f"❌ Tribute API error: {response.status} - {response_text}")
                     await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
         
         await callback.answer()
         
+    except aiohttp.ClientError as e:
+        logging.error(f"❌ Network error in handle_foreign_payment: {e}")
+        await callback.message.edit_text("❌ Ошибка сети. Проверьте интернет и попробуйте позже.")
+        await callback.answer()
     except Exception as e:
-        logging.error(f"❌ Error in handle_foreign_payment: {e}")
+        logging.error(f"❌ Unexpected error in handle_foreign_payment: {e}")
         await callback.message.edit_text("❌ Произошла ошибка. Попробуйте позже.")
         await callback.answer()
 
