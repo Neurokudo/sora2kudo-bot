@@ -272,17 +272,17 @@ async def cmd_start(message: types.Message):
     user_plan = user.get('plan_name', 'Без тарифа')
     user_videos_left = user.get('videos_left', 0)
     
-            if user_plan == 'Без тарифа' and user_videos_left == 0:
-                # Показываем мотивирующее сообщение для покупки тарифа
-                await message.answer(
-                    get_text(user_language, "no_tariff_message"),
-                    reply_markup=tariff_selection(user_language)
-                )
-                # Также показываем основное меню
-                await message.answer(
-                    get_text(user_language, "choose_action"),
-                    reply_markup=main_menu(user_language)
-                )
+    if user_plan == 'Без тарифа' and user_videos_left == 0:
+        # Показываем мотивирующее сообщение для покупки тарифа
+        await message.answer(
+            get_text(user_language, "no_tariff_message"),
+            reply_markup=tariff_selection(user_language)
+        )
+        # Также показываем основное меню
+        await message.answer(
+            get_text(user_language, "choose_action"),
+            reply_markup=main_menu(user_language)
+        )
     else:
         # Обычное приветствие для пользователей с тарифом
         welcome_text = get_text(
