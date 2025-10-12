@@ -610,10 +610,9 @@ async def handle_video_description(message: types.Message, user_language: str):
         reply_markup=main_menu(user_language)
     )
     
-    # Отправляем сообщение о создании видео
+    # Отправляем сообщение о создании видео (БЕЗ клавиатуры, чтобы можно было редактировать)
     creating_msg = await message.answer(
-        get_text(user_language, "video_creating"),
-        reply_markup=main_menu(user_language)
+        get_text(user_language, "video_creating")
     )
     
     # Уменьшаем количество видео ТОЛЬКО после успешного начала процесса
