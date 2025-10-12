@@ -750,11 +750,20 @@ async def health(request):
 async def yookassa_webhook(request):
     """Обработчик webhook от YooKassa"""
     try:
+        # Получаем raw данные для логирования
+        raw_data = await request.text()
+        logging.info(f"💳 YooKassa webhook received: {raw_data}")
+        
         data = await request.json()
+        logging.info(f"💳 YooKassa webhook parsed data: {data}")
         
         # Проверяем тип события
-        if data.get('event') == 'payment.succeeded':
+        event_type = data.get('event')
+        logging.info(f"💳 YooKassa event type: {event_type}")
+        
+        if event_type == 'payment.succeeded':
             payment_data = data.get('object', {})
+            logging.info(f"💳 Payment data: {payment_data}")
             
             # Получаем метаданные
             metadata = payment_data.get('metadata', {})
@@ -762,6 +771,8 @@ async def yookassa_webhook(request):
             tariff = metadata.get('tariff')
             videos_count = int(metadata.get('videos_count'))
             amount = payment_data.get('amount', {}).get('value')
+            
+            logging.info(f"💳 Processing payment for user {user_id}, tariff {tariff}, videos {videos_count}, amount {amount}")
             
             # Обновляем тариф пользователя
             tariff_names = {
@@ -771,19 +782,25 @@ async def yookassa_webhook(request):
             }
             
             tariff_name = tariff_names.get(tariff, tariff)
-            await update_user_tariff(user_id, tariff_name, videos_count, int(amount))
+            success = await update_user_tariff(user_id, tariff_name, videos_count, int(amount))
+            logging.info(f"💳 User tariff update result: {success}")
             
             # Отправляем уведомление пользователю
             try:
                 success_text = f"✅ <b>Оплата прошла успешно!</b>\n\n🎬 Тариф: <b>{tariff_name}</b>\n🎞 Видео: <b>{videos_count}</b>\n💰 Сумма: <b>{amount} ₽</b>\n\n🎉 Теперь вы можете создавать видео!"
                 await bot.send_message(user_id, success_text)
+                logging.info(f"💳 Success message sent to user {user_id}")
             except Exception as e:
                 logging.error(f"❌ Error sending success message to user {user_id}: {e}")
+        else:
+            logging.info(f"💳 YooKassa event {event_type} ignored")
         
         return web.Response(text="OK")
         
     except Exception as e:
         logging.error(f"❌ Error in YooKassa webhook: {e}")
+        import traceback
+        logging.error(f"❌ Traceback: {traceback.format_exc()}")
         return web.Response(text="Error", status=500)
 
 async def tribute_webhook(request):
@@ -822,6 +839,7 @@ def create_app():
     # Маршруты
     app.router.add_post("/webhook", handle_webhook)
     app.router.add_post("/yookassa_webhook", yookassa_webhook)
+    app.router.add_post("/webhook/yookassa", yookassa_webhook)  # Дополнительный маршрут для YooKassa
     app.router.add_post("/tribute_webhook", tribute_webhook)
     app.router.add_get("/health", health)
     
