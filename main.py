@@ -280,7 +280,6 @@ async def cmd_start(message: types.Message):
         )
         # Также показываем основное меню
         await message.answer(
-            get_text(user_language, "choose_action"),
             reply_markup=main_menu(user_language)
         )
     else:
@@ -632,7 +631,15 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
             # Получаем ссылку на оплату
             payment_url = payment.confirmation.confirmation_url
             
-            payment_text = f"💳 <b>Оплата тарифа {tariff}</b>\n\n💰 Сумма: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n📱 После оплаты ваш тариф будет автоматически активирован!"
+            # Получаем правильное название тарифа
+            tariff_names = {
+                "trial": "Пробный",
+                "basic": "Базовый", 
+                "maximum": "Максимум"
+            }
+            tariff_display_name = tariff_names.get(tariff, tariff)
+            
+            payment_text = f"💳 <b>Оплата тарифа {tariff_display_name}</b>\n\n💰 Сумма: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n📱 После оплаты ваш тариф будет автоматически активирован!"
             
             # Создаем inline кнопку для оплаты
             pay_button = InlineKeyboardMarkup(inline_keyboard=[
@@ -782,7 +789,7 @@ async def yookassa_webhook(request):
             }
             
             tariff_name = tariff_names.get(tariff, tariff)
-            success = await update_user_tariff(user_id, tariff_name, videos_count, int(amount))
+            success = await update_user_tariff(user_id, tariff_name, videos_count, int(float(amount)))
             logging.info(f"💳 User tariff update result: {success}")
             
             # Отправляем уведомление пользователю
