@@ -1144,6 +1144,82 @@ def create_app():
     
     return app
 
+# === EXAMPLES SYSTEM FUNCTIONS ===
+
+def build_categories_keyboard(page: int = 0):
+    """Создает клавиатуру с пагинацией разделов (6+6+6+2)"""
+    categories = get_categories()
+    categories_per_page = [6, 6, 6, 2]  # 6+6+6+2 = 20 кнопок
+    total_pages = len(categories_per_page)
+    
+    # Определяем текущую страницу
+    if page >= total_pages:
+        page = 0
+    
+    # Создаем кнопки для текущей страницы
+    start_idx = sum(categories_per_page[:page])
+    end_idx = start_idx + categories_per_page[page]
+    page_categories = categories[start_idx:end_idx]
+    
+    keyboard = []
+    for category_key in page_categories:
+        category_name = get_category_name(category_key)
+        keyboard.append([InlineKeyboardButton(text=category_name, callback_data=f"category_{category_key}")])
+    
+    # Добавляем навигационные кнопки
+    nav_buttons = []
+    if page > 0 and page < total_pages - 1:
+        # Средние страницы: Назад + Еще
+        nav_buttons.append(InlineKeyboardButton(text="⏪ Назад", callback_data=f"catpage_{page-1}"))
+        nav_buttons.append(InlineKeyboardButton(text="⏩ Еще", callback_data=f"catpage_{page+1}"))
+    elif page > 0:
+        # Последняя страница: только Назад
+        nav_buttons.append(InlineKeyboardButton(text="⏪ Назад", callback_data=f"catpage_{page-1}"))
+    elif page < total_pages - 1:
+        # Первая страница: только Еще примеры
+        nav_buttons.append(InlineKeyboardButton(text="⏩ Еще примеры", callback_data=f"catpage_{page+1}"))
+    
+    if nav_buttons:
+        keyboard.append(nav_buttons)
+    
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+async def show_categories(callback: types.CallbackQuery, page: int = 0):
+    """Показать категории примеров с пагинацией"""
+    markup = build_categories_keyboard(page)
+    text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
+    await callback.message.edit_text(text, reply_markup=markup)
+
+async def show_example(callback: types.CallbackQuery, category_key: str, index: int):
+    """Показать конкретный пример с навигацией"""
+    examples = get_examples_from_category(category_key)
+    if not examples:
+        await callback.message.edit_text("❌ В этом разделе пока нет примеров")
+        return
+        
+    # Проверяем индекс
+    if index >= len(examples) or index < 0:
+        index = 0
+        
+    example = examples[index]
+    category_name = get_category_name(category_key)
+    
+    # Создаем навигационные кнопки
+    keyboard = [
+        [
+            InlineKeyboardButton(text="⏪ Назад", callback_data="example_prev"),
+            InlineKeyboardButton(text="▶️ Создать", callback_data="example_create_video"),
+            InlineKeyboardButton(text="⏩ Далее", callback_data="example_next")
+        ],
+        [InlineKeyboardButton(text="⏹️ Другой раздел", callback_data="example_back_to_categories")]
+    ]
+    
+    markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
+    
+    text = f"📚 <b>{category_name}</b>\n\n<b>{example['title']}</b>\n\n<code>{example['description']}</code>\n\n<i>{index + 1} из {len(examples)}</i>"
+    
+    await callback.message.edit_text(text, reply_markup=markup)
+
 # === MAIN FUNCTION ===
 async def start_bot():
     """Запуск бота в webhook или polling режиме"""
@@ -1206,75 +1282,6 @@ async def start_bot():
         logging.error(f"❌ Traceback: {traceback.format_exc()}")
         raise
 
-        # === EXAMPLES SYSTEM FUNCTIONS ===
-
-        def build_categories_keyboard(page: int = 0):
-            """Создает клавиатуру с пагинацией разделов (6+6+6+2)"""
-            categories = get_categories()
-            categories_per_page = [6, 6, 6, 2]  # 6+6+6+2 = 20 кнопок
-            total_pages = len(categories_per_page)
-            
-            # Определяем текущую страницу
-            if page >= total_pages:
-                page = 0
-            
-            # Создаем кнопки для текущей страницы
-            start_idx = sum(categories_per_page[:page])
-            end_idx = start_idx + categories_per_page[page]
-            page_categories = categories[start_idx:end_idx]
-            
-            keyboard = []
-            for category_key in page_categories:
-                category_name = get_category_name(category_key)
-                keyboard.append([InlineKeyboardButton(text=category_name, callback_data=f"category_{category_key}")])
-            
-            # Добавляем навигационные кнопки
-            nav_buttons = []
-            if page > 0:
-                nav_buttons.append(InlineKeyboardButton(text="⏪ Назад", callback_data=f"catpage_{page-1}"))
-            if page < total_pages - 1:
-                nav_buttons.append(InlineKeyboardButton(text="⏩ Вперед", callback_data=f"catpage_{page+1}"))
-            
-            if nav_buttons:
-                keyboard.append(nav_buttons)
-            
-            return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
-        async def show_categories(callback: types.CallbackQuery, page: int = 0):
-            """Показать категории примеров с пагинацией"""
-            markup = build_categories_keyboard(page)
-            text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
-            await callback.message.edit_text(text, reply_markup=markup)
-
-        async def show_example(callback: types.CallbackQuery, category_key: str, index: int):
-            """Показать конкретный пример с навигацией"""
-            examples = get_examples_from_category(category_key)
-            if not examples:
-                await callback.message.edit_text("❌ В этом разделе пока нет примеров")
-                return
-                
-            # Проверяем индекс
-            if index >= len(examples) or index < 0:
-                index = 0
-                
-            example = examples[index]
-            category_name = get_category_name(category_key)
-            
-            # Создаем навигационные кнопки
-            keyboard = [
-                [
-                    InlineKeyboardButton(text="⏪ Назад", callback_data="example_prev"),
-                    InlineKeyboardButton(text="▶️ Создать", callback_data="example_create_video"),
-                    InlineKeyboardButton(text="⏩ Далее", callback_data="example_next")
-                ],
-                [InlineKeyboardButton(text="⏹️ Другой раздел", callback_data="example_back_to_categories")]
-            ]
-            
-            markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
-            
-            text = f"📚 <b>{category_name}</b>\n\n<b>{example['title']}</b>\n\n<code>{example['description']}</code>\n\n<i>{index + 1} из {len(examples)}</i>"
-            
-            await callback.message.edit_text(text, reply_markup=markup)
 
 async def handle_video_description_from_example(callback: types.CallbackQuery, description: str):
     """Создать видео из примера"""
