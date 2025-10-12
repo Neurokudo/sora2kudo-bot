@@ -412,7 +412,11 @@ async def handle_text(message: types.Message):
     
     # Обработка кнопок меню (с учетом языка)
     if text in [get_text(lang, "btn_create_video") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        await handle_create_video(message, user_language)
+        # Показываем выбор ориентации
+        await message.answer(
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language)
+        )
     elif text in [get_text(lang, "btn_examples") for lang in ["ru", "en", "es", "ar", "hi"]]:
         await handle_examples(message, user_language)
     elif text in [get_text(lang, "btn_profile") for lang in ["ru", "en", "es", "ar", "hi"]]:
@@ -432,40 +436,6 @@ async def handle_text(message: types.Message):
                 get_text(user_language, "use_buttons"),
                 reply_markup=main_menu(user_language)
             )
-
-async def handle_create_video(message: types.Message, user_language: str):
-    """Обработка кнопки 'Создать видео'"""
-    user_id = message.from_user.id
-    
-    # Проверяем, выбрана ли ориентация
-    if user_id not in user_waiting_for_video_orientation or not user_waiting_for_video_orientation[user_id]:
-        await message.answer(
-            get_text(user_language, "choose_orientation"),
-            reply_markup=orientation_menu(user_language)
-        )
-        return
-    
-    # Проверяем лимиты
-    user = await get_user(user_id)
-    if user and user['videos_left'] <= 0:
-        await message.answer(
-            get_text(user_language, "no_videos_left"),
-            reply_markup=main_menu(user_language)
-        )
-        return
-    
-    orientation = user_waiting_for_video_orientation[user_id]
-    orientation_text = get_text(user_language, f"orientation_{orientation}_name")
-    
-    await message.answer(
-        get_text(
-            user_language,
-            "create_video",
-            orientation=orientation_text,
-            videos_left=user['videos_left'] if user else 3
-        ),
-        reply_markup=main_menu(user_language)
-    )
 
 async def handle_examples(message: types.Message, user_language: str):
     """Обработка кнопки 'Примеры'"""

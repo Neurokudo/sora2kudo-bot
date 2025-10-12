@@ -6,7 +6,7 @@
 LANG = {
     "ru": {
         # Основные сообщения
-        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🎬 <b>Опиши сцену простыми словами:</b>\nКто в кадре, где происходит действие, что они делают, какая атмосфера и погода.\nДобавь, если нужно, детали: одежду, эмоции, свет, фон.\n\n📸 <b>Пример:</b>\nРыбаки в лодке поймали русалку, один в тельняшке тянет сеть, русалка шипит и вырывается, съёмка на телефон, вода мутная, туман.\n\n💡 <b>Выбери действие:</b>",
+        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n💡 <b>Выбери действие:</b>",
         "choose_action": "💡 <b>Выбери действие:</b>",
         "choose_language": "🌍 <b>Выберите язык:</b>",
         "lang_selected": "✅ <b>Язык изменён на Русский.</b>",
@@ -23,7 +23,7 @@ LANG = {
         "choose_orientation": "📐 <b>Выбери ориентацию для будущих видео:</b>",
         "orientation_vertical": "📱 Вертикальное",
         "orientation_horizontal": "🖥 Горизонтальное",
-        "orientation_selected": "✅ <b>Выбрана {orientation} ориентация</b>\n\nТеперь нажми <b>🎬 Создать видео</b> и напиши, что хочешь снять!",
+        "orientation_selected": "✅ <b>Выбрана {orientation} ориентация</b>\n\n🎬 <b>Опиши сцену простыми словами:</b>\nКто в кадре, где происходит действие, что они делают, какая атмосфера и погода.\nДобавь, если нужно, детали: одежду, эмоции, свет, фон.\n\n📸 <b>Пример:</b>\n<code>Рыбаки в лодке поймали русалку, один в тельняшке тянет сеть, русалка шипит и вырывается, съёмка на телефон, вода мутная, туман.</code>",
         "orientation_vertical_name": "вертикальная",
         "orientation_horizontal_name": "горизонтальная",
         
@@ -59,7 +59,7 @@ LANG = {
     
     "en": {
         # Основные сообщения
-        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🎬 <b>Describe the scene in simple words:</b>\nWho is in the frame, where the action takes place, what they are doing, atmosphere and weather.\nAdd details if needed: clothing, emotions, lighting, background.\n\n📸 <b>Example:</b>\nFishermen in a boat caught a mermaid, one in a striped shirt pulls the net, mermaid hisses and breaks free, phone recording, murky water, fog.\n\n💡 <b>Choose an action:</b>",
+        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n💡 <b>Choose an action:</b>",
         "choose_action": "💡 <b>Choose an action:</b>",
         "choose_language": "🌍 <b>Choose your language:</b>",
         "lang_selected": "✅ <b>Language set to English.</b>",
@@ -76,7 +76,7 @@ LANG = {
         "choose_orientation": "📐 <b>Choose orientation for future videos:</b>",
         "orientation_vertical": "📱 Vertical",
         "orientation_horizontal": "🖥 Horizontal",
-        "orientation_selected": "✅ <b>{orientation} orientation selected</b>\n\nNow press <b>🎬 Create Video</b> and describe what you want to film!",
+        "orientation_selected": "✅ <b>{orientation} orientation selected</b>\n\n🎬 <b>Describe the scene in simple words:</b>\nWho is in the frame, where the action takes place, what they are doing, atmosphere and weather.\nAdd details if needed: clothing, emotions, lighting, background.\n\n📸 <b>Example:</b>\n<code>Fishermen in a boat caught a mermaid, one in a striped shirt pulls the net, mermaid hisses and breaks free, phone recording, murky water, fog.</code>",
         "orientation_vertical_name": "vertical",
         "orientation_horizontal_name": "horizontal",
         
