@@ -584,8 +584,14 @@ async def handle_video_description(message: types.Message, user_language: str):
         return
     
     if user['videos_left'] <= 0:
+        # Отправляем грустное сообщение с предложением купить тариф
         await message.answer(
             get_text(user_language, "no_videos_left"),
+            reply_markup=tariff_selection(user_language)
+        )
+        # Также показываем основное меню
+        await message.answer(
+            get_text(user_language, "choose_action"),
             reply_markup=main_menu(user_language)
         )
         return
