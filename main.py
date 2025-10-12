@@ -1204,7 +1204,7 @@ async def sora_callback(request):
                 if video_urls:
                     # Отправляем видео пользователю
                     try:
-                        # Сначала отправляем видео
+                        # Пробуем отправить видео напрямую по URL
                         await bot.send_video(
                             user_id, 
                             video=video_urls[0],
@@ -1212,7 +1212,57 @@ async def sora_callback(request):
                             parse_mode="HTML"
                         )
                         
-                        # Затем отправляем меню
+                        logging.info(f"✅ Video sent directly to user {user_id}: {video_urls[0]}")
+                        
+                    except Exception as e:
+                        logging.error(f"❌ Direct video send failed for user {user_id}: {e}")
+                        
+                        # Пробуем скачать и отправить как файл
+                        try:
+                            import aiohttp
+                            import tempfile
+                            import os
+                            
+                            async with aiohttp.ClientSession() as session:
+                                async with session.get(video_urls[0]) as response:
+                                    if response.status == 200:
+                                        # Создаем временный файл
+                                        with tempfile.NamedTemporaryFile(delete=False, suffix='.mp4') as temp_file:
+                                            temp_file.write(await response.read())
+                                            temp_file_path = temp_file.name
+                                        
+                                        # Отправляем как видео-файл
+                                        with open(temp_file_path, 'rb') as video_file:
+                                            await bot.send_video(
+                                                user_id,
+                                                video=video_file,
+                                                caption="🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n\n💡 Для продолжения создания пришлите новое описание!",
+                                                parse_mode="HTML"
+                                            )
+                                        
+                                        # Удаляем временный файл
+                                        os.unlink(temp_file_path)
+                                        
+                                        logging.info(f"✅ Video downloaded and sent to user {user_id}")
+                                    else:
+                                        raise Exception(f"Failed to download video: HTTP {response.status}")
+                                        
+                        except Exception as download_error:
+                            logging.error(f"❌ Video download failed for user {user_id}: {download_error}")
+                            
+                            # Fallback - отправляем ссылку
+                            try:
+                                await bot.send_message(
+                                    user_id, 
+                                    f"🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>\n\n💡 Для продолжения создания пришлите новое описание!",
+                                    parse_mode="HTML"
+                                )
+                                logging.info(f"✅ Fallback link sent to user {user_id}")
+                            except Exception as fallback_error:
+                                logging.error(f"❌ Fallback error: {fallback_error}")
+                    
+                    # Отправляем меню в любом случае
+                    try:
                         user = await get_user(user_id)
                         user_language = user.get('language', 'en') if user else 'en'
                         await bot.send_message(
@@ -1220,19 +1270,8 @@ async def sora_callback(request):
                             get_text(user_language, "choose_action"),
                             reply_markup=main_menu(user_language)
                         )
-                        
-                        logging.info(f"✅ Video sent to user {user_id}: {video_urls[0]}")
-                    except Exception as e:
-                        logging.error(f"❌ Error sending video to user {user_id}: {e}")
-                        # Fallback - отправляем ссылку, если не удалось отправить видео
-                        try:
-                            await bot.send_message(
-                                user_id, 
-                                f"🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>\n\n💡 Для продолжения создания пришлите новое описание!",
-                                parse_mode="HTML"
-                            )
-                        except Exception as fallback_error:
-                            logging.error(f"❌ Fallback error: {fallback_error}")
+                    except Exception as menu_error:
+                        logging.error(f"❌ Error sending menu to user {user_id}: {menu_error}")
                 else:
                     logging.error(f"❌ No video URLs in result: {result_json}")
             else:
