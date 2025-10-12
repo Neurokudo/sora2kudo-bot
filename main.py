@@ -40,39 +40,65 @@ async def init_database():
     global db_pool
     
     try:
+        logging.info("✅ Connecting to DATABASE_URL...")
+        
         # Подключение к базе данных
         db_pool = await asyncpg.create_pool(DATABASE_URL)
-        logging.info("✅ DB connected")
+        logging.info("✅ Database connected successfully.")
         
         # Создание таблицы users
         async with db_pool.acquire() as conn:
-            await conn.execute('''
-                CREATE TABLE IF NOT EXISTS users (
-                    id SERIAL PRIMARY KEY,
-                    user_id BIGINT UNIQUE NOT NULL,
-                    username TEXT,
-                    first_name TEXT,
-                    plan_name TEXT DEFAULT 'trial',
-                    videos_left INT DEFAULT 3,
-                    total_payments INT DEFAULT 0,
-                    created_at TIMESTAMP DEFAULT NOW()
+            # Проверяем существование таблицы
+            table_exists = await conn.fetchval("""
+                SELECT EXISTS (
+                    SELECT FROM information_schema.tables 
+                    WHERE table_name = 'users'
                 )
-            ''')
+            """)
+            
+            if not table_exists:
+                logging.info("📋 Creating table 'users'...")
+                await conn.execute('''
+                    CREATE TABLE users (
+                        id SERIAL PRIMARY KEY,
+                        user_id BIGINT UNIQUE,
+                        username TEXT,
+                        first_name TEXT,
+                        plan_name TEXT DEFAULT 'trial',
+                        videos_left INT DEFAULT 3,
+                        total_payments INT DEFAULT 0,
+                        created_at TIMESTAMP DEFAULT NOW()
+                    )
+                ''')
+                logging.info("✅ Table 'users' created successfully.")
+            else:
+                logging.info("✅ Table 'users' already exists.")
             
             # Создание индекса для быстрого поиска по user_id
             await conn.execute('''
                 CREATE INDEX IF NOT EXISTS idx_users_user_id ON users(user_id)
             ''')
             
-        logging.info("✅ DB tables checked and created")
+        logging.info("✅ Table 'users' ready")
         return True
         
     except Exception as e:
         logging.error(f"❌ Database initialization failed: {e}")
+        logging.error("⚠️ Bot will continue without database functionality")
+        db_pool = None
         return False
 
 async def get_user(user_id: int):
     """Получение пользователя из базы данных"""
+    if not db_pool:
+        logging.warning("⚠️ Database not available, returning default user data")
+        return {
+            'user_id': user_id,
+            'plan_name': 'trial',
+            'videos_left': 3,
+            'total_payments': 0
+        }
+        
     try:
         async with db_pool.acquire() as conn:
             user = await conn.fetchrow(
@@ -85,14 +111,23 @@ async def get_user(user_id: int):
 
 async def create_user(user_id: int, username: str = None, first_name: str = None):
     """Создание нового пользователя"""
+    if not db_pool:
+        logging.warning("⚠️ Database not available, skipping user creation")
+        return False
+        
     try:
         async with db_pool.acquire() as conn:
-            await conn.execute('''
+            result = await conn.execute('''
                 INSERT INTO users (user_id, username, first_name)
                 VALUES ($1, $2, $3)
                 ON CONFLICT (user_id) DO NOTHING
             ''', user_id, username, first_name)
-        logging.info(f"✅ Created/updated user {user_id}")
+            
+            if "INSERT" in result:
+                logging.info(f"✅ Created new user {user_id} ({first_name})")
+            else:
+                logging.info(f"✅ User {user_id} already exists")
+                
         return True
     except Exception as e:
         logging.error(f"❌ Error creating user {user_id}: {e}")
@@ -100,11 +135,16 @@ async def create_user(user_id: int, username: str = None, first_name: str = None
 
 async def update_user_videos(user_id: int, videos_left: int):
     """Обновление количества оставшихся видео"""
+    if not db_pool:
+        logging.warning("⚠️ Database not available, skipping video update")
+        return False
+        
     try:
         async with db_pool.acquire() as conn:
             await conn.execute('''
                 UPDATE users SET videos_left = $2 WHERE user_id = $1
             ''', user_id, videos_left)
+        logging.info(f"✅ Updated user {user_id} videos to {videos_left}")
         return True
     except Exception as e:
         logging.error(f"❌ Error updating user videos {user_id}: {e}")
@@ -386,8 +426,7 @@ async def start_bot():
     # Инициализация базы данных
     db_ready = await init_database()
     if not db_ready:
-        logging.error("❌ Failed to initialize database")
-        return
+        logging.warning("⚠️ Database initialization failed, bot will continue with limited functionality")
     
     if TELEGRAM_MODE == "webhook":
         # Webhook режим для Railway
@@ -405,7 +444,7 @@ async def start_bot():
         site = web.TCPSite(runner, '0.0.0.0', PORT)
         await site.start()
         
-        logging.info("🚀 Bot is running in webhook mode")
+        logging.info("🚀 Bot is running.")
         
         # Держим сервер запущенным
         try:
