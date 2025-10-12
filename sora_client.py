@@ -77,8 +77,27 @@ async def create_sora_task(prompt: str, aspect_ratio: str = "portrait", remove_w
 def extract_user_from_param(param_str: str):
     """Извлекает user_id из строки JSON, хранящейся в param"""
     try:
+        logging.info(f"🔍 Parsing param: {param_str}")
         param = json.loads(param_str)
-        return int(param["input"].get("user_id")) if "user_id" in param["input"] else None
+        logging.info(f"🔍 Parsed param: {param}")
+        
+        # KIE.AI отправляет user_id в разных местах, проверим все варианты
+        if "input" in param and isinstance(param["input"], dict):
+            if "user_id" in param["input"]:
+                user_id = param["input"]["user_id"]
+                logging.info(f"✅ Found user_id in param.input: {user_id}")
+                return int(user_id)
+        
+        # Если user_id не найден в input, проверим корневой уровень
+        if "user_id" in param:
+            user_id = param["user_id"]
+            logging.info(f"✅ Found user_id in param root: {user_id}")
+            return int(user_id)
+            
+        logging.warning(f"⚠️ user_id not found in param: {param}")
+        return None
+        
     except Exception as e:
         logging.error(f"❌ Error extracting user_id from param: {e}")
+        logging.error(f"❌ Param string: {param_str}")
         return None

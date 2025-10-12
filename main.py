@@ -661,11 +661,7 @@ async def handle_video_description(message: types.Message, user_language: str):
                 f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
                 parse_mode="HTML"
             )
-            # Отправляем меню отдельным сообщением
-            await message.answer(
-                get_text(user_language, "choose_action"),
-                reply_markup=main_menu(user_language)
-            )
+            # Меню уже показано в предыдущем сообщении, не дублируем
             logging.info(f"✅ Sora task created for user {user_id}: {task_id}")
         else:
             # Ошибка или demo режим
@@ -676,11 +672,7 @@ async def handle_video_description(message: types.Message, user_language: str):
                     "🎬 <b>Демо режим</b>\n\n⚠️ KIE.AI API не настроен\n🔄 В реальной версии здесь будет ваше видео\n\n" +
                     get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1)
                 )
-                # Отправляем меню отдельным сообщением
-                await message.answer(
-                    get_text(user_language, "choose_action"),
-                    reply_markup=main_menu(user_language)
-                )
+                # Меню уже показано в предыдущем сообщении, не дублируем
             else:
                 # Ошибка создания - возвращаем видео обратно
                 await update_user_videos(user_id, user['videos_left'])
@@ -688,11 +680,7 @@ async def handle_video_description(message: types.Message, user_language: str):
                 await creating_msg.edit_text(
                     get_text(user_language, "video_error", videos_left=user['videos_left'])
                 )
-                # Отправляем меню отдельным сообщением
-                await message.answer(
-                    get_text(user_language, "choose_action"),
-                    reply_markup=main_menu(user_language)
-                )
+                # Меню уже показано в предыдущем сообщении, не дублируем
                 
     except Exception as e:
         logging.error(f"❌ Critical error in handle_video_description: {e}")
@@ -709,11 +697,7 @@ async def handle_video_description(message: types.Message, user_language: str):
             await creating_msg.edit_text(
                 get_text(user_language, "video_error", videos_left=user['videos_left'])
             )
-            # Отправляем меню отдельным сообщением
-            await message.answer(
-                get_text(user_language, "choose_action"),
-                reply_markup=main_menu(user_language)
-            )
+            # Меню уже показано в предыдущем сообщении, не дублируем
         except Exception as msg_error:
             logging.error(f"❌ Failed to send error message: {msg_error}")
             # Последняя попытка - простое сообщение
