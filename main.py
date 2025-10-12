@@ -1,5 +1,6 @@
 import os
 import logging
+from aiohttp import web
 from aiogram import Bot, Dispatcher, types
 from aiogram.enums import ParseMode
 from aiogram.filters import Command
@@ -7,9 +8,16 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMar
 
 # === CONFIGURATION ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
-SUPPORT_CHAT_ID = os.getenv("SUPPORT_CHAT_ID", "-1002454833654")  # группа поддержки
+PUBLIC_URL = os.getenv("PUBLIC_URL")
+TELEGRAM_MODE = os.getenv("TELEGRAM_MODE", "webhook")
+PORT = int(os.getenv("PORT", 8080))
+SUPPORT_CHAT_ID = os.getenv("SUPPORT_CHAT_ID", "-1002454833654")
+
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN not found in environment variables")
+
+if not PUBLIC_URL:
+    raise RuntimeError("❌ PUBLIC_URL not found in environment variables")
 
 logging.basicConfig(level=logging.INFO)
 
@@ -164,10 +172,67 @@ async def handle_text(message: types.Message):
             "✏️ Опиши идею или используй команду /video, чтобы выбрать ориентацию."
         )
 
-# === ENTRYPOINT ===
+# === WEBHOOK HANDLERS ===
+async def handle_webhook(request):
+    """Обработчик webhook от Telegram"""
+    try:
+        data = await request.json()
+        update = types.Update(**data)
+        await dp.feed_update(bot, update)
+        return web.Response()
+    except Exception as e:
+        logging.error(f"Ошибка в webhook: {e}")
+        return web.Response(status=500)
+
+async def health(request):
+    """Health check для Railway"""
+    return web.Response(text="OK")
+
+# === WEB APPLICATION ===
+def create_app():
+    """Создание веб-приложения"""
+    app = web.Application()
+    
+    # Маршруты
+    app.router.add_post("/webhook", handle_webhook)
+    app.router.add_get("/health", health)
+    
+    return app
+
+# === MAIN FUNCTION ===
 async def start_bot():
+    """Запуск бота в webhook или polling режиме"""
     logging.info("🚀 Launching sora2kudo-bot...")
-    await dp.start_polling(bot)
+    
+    if TELEGRAM_MODE == "webhook":
+        # Webhook режим для Railway
+        logging.info(f"🌐 Setting up webhook: {PUBLIC_URL}/webhook")
+        await bot.set_webhook(f"{PUBLIC_URL}/webhook")
+        logging.info("✅ Webhook установлен")
+        
+        # Создаем веб-приложение
+        app = create_app()
+        
+        # Запускаем веб-сервер
+        logging.info(f"🚀 Starting web server on port {PORT}")
+        runner = web.AppRunner(app)
+        await runner.setup()
+        site = web.TCPSite(runner, '0.0.0.0', PORT)
+        await site.start()
+        
+        logging.info("✅ Bot is running in webhook mode")
+        
+        # Держим сервер запущенным
+        try:
+            while True:
+                await asyncio.sleep(1)
+        except KeyboardInterrupt:
+            logging.info("🛑 Stopping bot...")
+            await runner.cleanup()
+    else:
+        # Polling режим для локальной разработки
+        logging.info("🔄 Starting bot in polling mode")
+        await dp.start_polling(bot)
 
 if __name__ == "__main__":
     import asyncio
