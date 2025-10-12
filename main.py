@@ -1312,8 +1312,11 @@ async def handle_video_description_from_example(callback: types.CallbackQuery, d
         # Списываем видео
         await update_user_videos(user_id, user['videos_left'] - 1)
         
+        # Преобразуем ориентацию в aspect_ratio для Sora API
+        aspect_ratio = "portrait" if orientation == "vertical" else "landscape"
+        
         # Создаем задачу в Sora
-        task_id, status = await create_sora_task(description, orientation, user_id=user_id)
+        task_id, status = await create_sora_task(description, aspect_ratio, user_id=user_id)
         
         if task_id and status == "success":
             # Показываем успешное создание задачи
