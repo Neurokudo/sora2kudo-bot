@@ -3,6 +3,7 @@ import logging
 import asyncio
 import uuid
 from datetime import datetime
+import aiohttp
 from aiohttp import web
 import asyncpg
 from aiogram import Bot, Dispatcher, types
