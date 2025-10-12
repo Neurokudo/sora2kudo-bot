@@ -825,8 +825,8 @@ async def handle_video_description(message: types.Message, user_language: str):
     
     orientation_text = get_text(user_language, f"orientation_{orientation}_name")
     
-    # Отправляем сообщение о том, что видео принято
-    await message.answer(
+    # Отправляем сообщение о том, что видео принято (будем его редактировать)
+    accepted_msg = await message.answer(
         get_text(
             user_language,
             "video_accepted",
@@ -857,6 +857,9 @@ async def handle_video_description(message: types.Message, user_language: str):
         )
         
         if task_id and status == "success":
+            # Удаляем сообщение "Принято описание!"
+            await accepted_msg.delete()
+            
             # Успешно отправлено в KIE.AI
             await creating_msg.edit_text(
                 f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{text}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
@@ -875,7 +878,8 @@ async def handle_video_description(message: types.Message, user_language: str):
                 )
                 # Меню уже показано в предыдущем сообщении, не дублируем
             else:
-                # Ошибка создания - возвращаем видео обратно
+                # Ошибка создания - удаляем сообщение "Принято описание!" и возвращаем видео обратно
+                await accepted_msg.delete()
                 await update_user_videos(user_id, user['videos_left'])
                 
                 await creating_msg.edit_text(
@@ -888,6 +892,7 @@ async def handle_video_description(message: types.Message, user_language: str):
         
         # Возвращаем видео обратно при любой критической ошибке
         try:
+            await accepted_msg.delete()  # Удаляем сообщение "Принято описание!"
             await update_user_videos(user_id, user['videos_left'])
             logging.info(f"✅ Returned video to user {user_id} due to critical error")
         except Exception as db_error:
