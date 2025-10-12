@@ -27,7 +27,7 @@ PUBLIC_URL = os.getenv("PUBLIC_URL")
 TELEGRAM_MODE = os.getenv("TELEGRAM_MODE", "webhook")
 PORT = int(os.getenv("PORT", 8080))
 DATABASE_URL = os.getenv("DATABASE_URL")
-SUPPORT_CHAT_ID = os.getenv("SUPPORT_CHAT_ID", "-1002454833654")
+SUPPORT_CHAT_ID = os.getenv("SUPPORT_CHAT_ID", "-4863150171")
 
 # YooKassa configuration
 YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID")
