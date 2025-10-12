@@ -1,6 +1,7 @@
 import os
 import logging
 import asyncio
+import uuid
 from datetime import datetime
 from aiohttp import web
 import asyncpg
@@ -9,6 +10,7 @@ from aiogram.enums import ParseMode
 from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
+from yookassa import Configuration, Payment
 
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
@@ -22,6 +24,10 @@ PORT = int(os.getenv("PORT", 8080))
 DATABASE_URL = os.getenv("DATABASE_URL")
 SUPPORT_CHAT_ID = os.getenv("SUPPORT_CHAT_ID", "-1002454833654")
 
+# YooKassa configuration
+YOOKASSA_SHOP_ID = os.getenv("YOOKASSA_SHOP_ID")
+YOOKASSA_SECRET_KEY = os.getenv("YOOKASSA_SECRET_KEY")
+
 if not BOT_TOKEN:
     raise RuntimeError("❌ BOT_TOKEN not found in environment variables")
 
@@ -32,6 +38,14 @@ if not DATABASE_URL:
     raise RuntimeError("❌ DATABASE_URL not found in environment variables")
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Настройка YooKassa
+if YOOKASSA_SHOP_ID and YOOKASSA_SECRET_KEY:
+    Configuration.account_id = YOOKASSA_SHOP_ID
+    Configuration.secret_key = YOOKASSA_SECRET_KEY
+    logging.info("✅ YooKassa configured")
+else:
+    logging.warning("⚠️ YooKassa credentials not found, payments will be disabled")
 
 bot = Bot(token=BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 dp = Dispatcher()
@@ -182,6 +196,27 @@ async def update_user_language(user_id: int, language: str):
         return True
     except Exception as e:
         logging.error(f"❌ Error updating user language {user_id}: {e}")
+        return False
+
+async def update_user_tariff(user_id: int, tariff_name: str, videos_count: int, payment_amount: int):
+    """Обновление тарифа пользователя после оплаты"""
+    if not db_pool:
+        logging.warning("⚠️ Database not available, skipping tariff update")
+        return False
+        
+    try:
+        async with db_pool.acquire() as conn:
+            await conn.execute('''
+                UPDATE users SET 
+                    plan_name = $2, 
+                    videos_left = $3, 
+                    total_payments = total_payments + $4 
+                WHERE user_id = $1
+            ''', user_id, tariff_name, videos_count, payment_amount)
+        logging.info(f"✅ Updated user {user_id} tariff to {tariff_name} with {videos_count} videos")
+        return True
+    except Exception as e:
+        logging.error(f"❌ Error updating user tariff {user_id}: {e}")
         return False
 
 # === GLOBAL STATES ===
@@ -517,15 +552,76 @@ async def handle_buy_tariff(message: types.Message, user_language: str):
         reply_markup=tariff_selection(user_language)
     )
 
+async def create_payment(user_id: int, tariff: str, price: int, videos_count: int):
+    """Создание платежа в YooKassa"""
+    try:
+        # Генерируем уникальный ID платежа
+        payment_id = str(uuid.uuid4())
+        
+        # Создаем платеж
+        payment = Payment.create({
+            "amount": {
+                "value": str(price),
+                "currency": "RUB"
+            },
+            "confirmation": {
+                "type": "redirect",
+                "return_url": f"{PUBLIC_URL}/payment_success"
+            },
+            "capture": True,
+            "description": f"Тариф {tariff} для SORA 2 бота - {videos_count} видео",
+            "metadata": {
+                "user_id": str(user_id),
+                "tariff": tariff,
+                "videos_count": str(videos_count)
+            }
+        }, payment_id)
+        
+        return payment
+    except Exception as e:
+        logging.error(f"❌ Error creating payment: {e}")
+        return None
+
 async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int, user_language: str):
     """Обработка покупки тарифа"""
     user_id = callback.from_user.id
     
-    # Пока что просто показываем сообщение о том, что оплата будет добавлена позже
-    payment_text = f"💳 <b>Покупка тарифа</b>\n\n🎬 Тариф: <b>{tariff}</b>\n💰 Цена: <b>{price} ₽</b>\n\n⚠️ Система оплаты будет добавлена позже.\nПока что вы можете тестировать бота бесплатно!"
+    # Определяем количество видео для каждого тарифа
+    tariff_videos = {
+        "trial": 3,
+        "basic": 10,
+        "maximum": 30
+    }
     
-    await callback.message.edit_text(payment_text)
-    await callback.answer()
+    videos_count = tariff_videos.get(tariff, 0)
+    
+    if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
+        # Если YooKassa не настроен, показываем заглушку
+        payment_text = f"💳 <b>Покупка тарифа</b>\n\n🎬 Тариф: <b>{tariff}</b>\n💰 Цена: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n⚠️ Система оплаты временно недоступна.\nПопробуйте позже!"
+        await callback.message.edit_text(payment_text)
+        await callback.answer()
+        return
+    
+    try:
+        # Создаем платеж в YooKassa
+        payment = await create_payment(user_id, tariff, price, videos_count)
+        
+        if payment:
+            # Получаем ссылку на оплату
+            payment_url = payment.confirmation.confirmation_url
+            
+            payment_text = f"💳 <b>Оплата тарифа {tariff}</b>\n\n💰 Сумма: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n🔗 <b>Ссылка для оплаты:</b>\n{payment_url}\n\n📱 После оплаты ваш тариф будет автоматически активирован!"
+            
+            await callback.message.edit_text(payment_text)
+            await callback.answer()
+        else:
+            await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
+            await callback.answer()
+            
+    except Exception as e:
+        logging.error(f"❌ Error in handle_payment: {e}")
+        await callback.message.edit_text("❌ Произошла ошибка. Попробуйте позже.")
+        await callback.answer()
 
 # === WEBHOOK HANDLERS ===
 async def handle_webhook(request):
@@ -546,6 +642,45 @@ async def health(request):
     """Health check для Railway"""
     return web.Response(text="OK")
 
+async def yookassa_webhook(request):
+    """Обработчик webhook от YooKassa"""
+    try:
+        data = await request.json()
+        
+        # Проверяем тип события
+        if data.get('event') == 'payment.succeeded':
+            payment_data = data.get('object', {})
+            
+            # Получаем метаданные
+            metadata = payment_data.get('metadata', {})
+            user_id = int(metadata.get('user_id'))
+            tariff = metadata.get('tariff')
+            videos_count = int(metadata.get('videos_count'))
+            amount = payment_data.get('amount', {}).get('value')
+            
+            # Обновляем тариф пользователя
+            tariff_names = {
+                "trial": "Пробный",
+                "basic": "Базовый", 
+                "maximum": "Максимум"
+            }
+            
+            tariff_name = tariff_names.get(tariff, tariff)
+            await update_user_tariff(user_id, tariff_name, videos_count, int(amount))
+            
+            # Отправляем уведомление пользователю
+            try:
+                success_text = f"✅ <b>Оплата прошла успешно!</b>\n\n🎬 Тариф: <b>{tariff_name}</b>\n🎞 Видео: <b>{videos_count}</b>\n💰 Сумма: <b>{amount} ₽</b>\n\n🎉 Теперь вы можете создавать видео!"
+                await bot.send_message(user_id, success_text)
+            except Exception as e:
+                logging.error(f"❌ Error sending success message to user {user_id}: {e}")
+        
+        return web.Response(text="OK")
+        
+    except Exception as e:
+        logging.error(f"❌ Error in YooKassa webhook: {e}")
+        return web.Response(text="Error", status=500)
+
 # === WEB APPLICATION ===
 def create_app():
     """Создание веб-приложения"""
@@ -553,6 +688,7 @@ def create_app():
     
     # Маршруты
     app.router.add_post("/webhook", handle_webhook)
+    app.router.add_post("/yookassa_webhook", yookassa_webhook)
     app.router.add_get("/health", health)
     
     return app
