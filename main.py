@@ -10,6 +10,10 @@ from aiogram.client.default import DefaultBotProperties
 from aiogram.filters import Command
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 
+# Импорт модулей для мультиязычности
+from translations import get_text, is_rtl_language
+from utils.keyboards import main_menu, language_selection, orientation_menu
+
 # === CONFIGURATION ===
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 PUBLIC_URL = os.getenv("PUBLIC_URL")
@@ -67,12 +71,18 @@ async def init_database():
                         plan_name TEXT DEFAULT 'trial',
                         videos_left INT DEFAULT 3,
                         total_payments INT DEFAULT 0,
+                        language TEXT DEFAULT 'en',
                         created_at TIMESTAMP DEFAULT NOW()
                     )
                 ''')
                 logging.info("✅ Table 'users' created successfully.")
             else:
                 logging.info("✅ Table 'users' already exists.")
+                # Добавляем поле language если его нет
+                await conn.execute('''
+                    ALTER TABLE users ADD COLUMN IF NOT EXISTS language TEXT DEFAULT 'en'
+                ''')
+                logging.info("✅ Language column checked/added.")
             
             # Создание индекса для быстрого поиска по user_id
             await conn.execute('''
@@ -150,29 +160,29 @@ async def update_user_videos(user_id: int, videos_left: int):
         logging.error(f"❌ Error updating user videos {user_id}: {e}")
         return False
 
+async def update_user_language(user_id: int, language: str):
+    """Обновление языка пользователя"""
+    if not db_pool:
+        logging.warning("⚠️ Database not available, skipping language update")
+        return False
+        
+    try:
+        async with db_pool.acquire() as conn:
+            await conn.execute('''
+                UPDATE users SET language = $2 WHERE user_id = $1
+            ''', user_id, language)
+        logging.info(f"✅ Updated user {user_id} language to {language}")
+        return True
+    except Exception as e:
+        logging.error(f"❌ Error updating user language {user_id}: {e}")
+        return False
+
 # === GLOBAL STATES ===
 user_waiting_for_support = set()
 user_waiting_for_video_orientation = {}
 
 # === MAIN MENU ===
-def main_menu():
-    """Главное меню с основными кнопками"""
-    kb = [
-        [KeyboardButton(text="🎬 Создать видео")],
-        [KeyboardButton(text="📘 Примеры"), KeyboardButton(text="💰 Кабинет")],
-        [KeyboardButton(text="❓ Помощь")]
-    ]
-    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
-
-def orientation_menu():
-    """Меню выбора ориентации видео"""
-    markup = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="📱 Вертикальное", callback_data="orientation_vertical"),
-            InlineKeyboardButton(text="🖥 Горизонтальное", callback_data="orientation_horizontal")
-        ]
-    ])
-    return markup
+# Функции меню перенесены в utils/keyboards.py
 
 # === /start ===
 @dp.message(Command("start"))
@@ -187,54 +197,121 @@ async def cmd_start(message: types.Message):
         await create_user(user_id, username, first_name)
         user = await get_user(user_id)
     
-    # Формируем приветственное сообщение
-    welcome_text = (
-        f"👋 Привет, {first_name or 'друг'}! Это <b>SORA 2 от Neurokudo</b>.\n\n"
-        f"🎬 <b>Твой пакет:</b> {user['plan_name'] if user else 'trial'}\n"
-        f"🎞 <b>Осталось видео:</b> {user['videos_left'] if user else 3}\n\n"
-        "Здесь ты можешь создавать видео по описанию — просто напиши, что хочешь снять.\n\n"
-        "💡 <b>Выбери действие:</b>"
+    # Получаем язык пользователя
+    user_language = user.get('language', 'en') if user else 'en'
+    
+    # Если язык не установлен, показываем выбор языка
+    if not user or not user.get('language'):
+        await message.answer(
+            get_text('en', "choose_language"),  # Показываем на английском
+            reply_markup=language_selection()
+        )
+        return
+    
+    # Формируем приветственное сообщение на языке пользователя
+    welcome_text = get_text(
+        user_language, 
+        "welcome",
+        name=first_name or get_text(user_language, "friend", default="friend"),
+        plan=user.get('plan_name', 'trial'),
+        videos_left=user.get('videos_left', 3)
     )
     
     await message.answer(
         welcome_text,
-        reply_markup=main_menu()
+        reply_markup=main_menu(user_language)
     )
     
     # Показываем кнопки ориентации
     await message.answer(
-        "📐 <b>Выбери ориентацию для будущих видео:</b>",
-        reply_markup=orientation_menu()
+        get_text(user_language, "choose_orientation"),
+        reply_markup=orientation_menu(user_language)
     )
 
 # === /help ===
 @dp.message(Command("help"))
-async def cmd_help(message: types.Message):
-    user_waiting_for_support.add(message.from_user.id)
+async def cmd_help_command(message: types.Message):
+    user_id = message.from_user.id
+    user = await get_user(user_id)
+    user_language = user.get('language', 'en') if user else 'en'
+    
+    user_waiting_for_support.add(user_id)
     await message.answer(
-        "🧭 <b>Помощь</b>\n\n"
-        "Опиши свою проблему, я постараюсь помочь скоро!",
-        reply_markup=main_menu()
+        get_text(user_language, "help_text"),
+        reply_markup=main_menu(user_language)
     )
 
-# === CALLBACK: Orientation choice ===
+# === CALLBACK: Language choice ===
 @dp.callback_query()
-async def orientation_callback(callback: types.CallbackQuery):
+async def callback_handler(callback: types.CallbackQuery):
     user_id = callback.from_user.id
+    
+    # Обработка выбора языка
+    if callback.data.startswith("lang_"):
+        language = callback.data.replace("lang_", "")
+        first_name = callback.from_user.first_name
+        
+        # Обновляем язык пользователя в БД
+        await update_user_language(user_id, language)
+        
+        # Получаем пользователя с обновленным языком
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else language
+        
+        # Отправляем подтверждение
+        await callback.message.edit_text(
+            get_text(user_language, "lang_selected")
+        )
+        
+        # Отправляем приветственное сообщение на выбранном языке
+        welcome_text = get_text(
+            user_language, 
+            "welcome",
+            name=first_name or "friend",
+            plan=user.get('plan_name', 'trial') if user else 'trial',
+            videos_left=user.get('videos_left', 3) if user else 3
+        )
+        
+        await callback.message.answer(
+            welcome_text,
+            reply_markup=main_menu(user_language)
+        )
+        
+        # Показываем кнопки ориентации
+        await callback.message.answer(
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language)
+        )
+        
+        await callback.answer()
+        return
+    
+    # Обработка выбора ориентации
     if callback.data == "orientation_vertical":
         user_waiting_for_video_orientation[user_id] = "vertical"
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
         await callback.message.edit_text(
-            "✅ <b>Выбрана вертикальная ориентация</b>\n\n"
-            "Теперь нажми <b>🎬 Создать видео</b> и напиши, что хочешь снять!",
-            parse_mode="HTML"
+            get_text(
+                user_language, 
+                "orientation_selected",
+                orientation=get_text(user_language, "orientation_vertical_name")
+            )
         )
     elif callback.data == "orientation_horizontal":
         user_waiting_for_video_orientation[user_id] = "horizontal"
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
         await callback.message.edit_text(
-            "✅ <b>Выбрана горизонтальная ориентация</b>\n\n"
-            "Теперь нажми <b>🎬 Создать видео</b> и напиши, что хочешь снять!",
-            parse_mode="HTML"
+            get_text(
+                user_language, 
+                "orientation_selected",
+                orientation=get_text(user_language, "orientation_horizontal_name")
+            )
         )
+    
     await callback.answer()
 
 # === DEFAULT HANDLER ===
@@ -262,34 +339,40 @@ async def handle_text(message: types.Message):
         user_waiting_for_support.remove(user_id)
         return
 
-    # Обработка кнопок меню
-    if text == "🎬 Создать видео":
-        await handle_create_video(message)
-    elif text == "📘 Примеры":
-        await handle_examples(message)
-    elif text == "💰 Кабинет":
-        await handle_profile(message)
-    elif text == "❓ Помощь":
-        await cmd_help(message)
+    # Получаем язык пользователя
+    user = await get_user(user_id)
+    user_language = user.get('language', 'en') if user else 'en'
+    
+    # Обработка кнопок меню (с учетом языка)
+    if text in [get_text(lang, "btn_create_video") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_create_video(message, user_language)
+    elif text in [get_text(lang, "btn_examples") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_examples(message, user_language)
+    elif text in [get_text(lang, "btn_profile") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_profile(message, user_language)
+    elif text in [get_text(lang, "btn_help") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await cmd_help(message, user_language)
+    elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_language_selection(message)
     else:
         # Если пользователь выбрал ориентацию, то это описание для видео
         if user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
-            await handle_video_description(message)
+            await handle_video_description(message, user_language)
         else:
             await message.answer(
-                "💡 Используй кнопки меню или выбери ориентацию видео!",
-                reply_markup=main_menu()
+                get_text(user_language, "use_buttons"),
+                reply_markup=main_menu(user_language)
             )
 
-async def handle_create_video(message: types.Message):
+async def handle_create_video(message: types.Message, user_language: str):
     """Обработка кнопки 'Создать видео'"""
     user_id = message.from_user.id
     
     # Проверяем, выбрана ли ориентация
     if user_id not in user_waiting_for_video_orientation or not user_waiting_for_video_orientation[user_id]:
         await message.answer(
-            "📐 <b>Сначала выбери ориентацию видео:</b>",
-            reply_markup=orientation_menu()
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language)
         )
         return
     
@@ -297,64 +380,53 @@ async def handle_create_video(message: types.Message):
     user = await get_user(user_id)
     if user and user['videos_left'] <= 0:
         await message.answer(
-            "🚫 <b>У тебя закончились видео!</b>\n\n"
-            "💳 Купи новый пакет в <b>💰 Кабинет</b>",
-            reply_markup=main_menu()
+            get_text(user_language, "no_videos_left"),
+            reply_markup=main_menu(user_language)
         )
         return
     
+    orientation = user_waiting_for_video_orientation[user_id]
+    orientation_text = get_text(user_language, f"orientation_{orientation}_name")
+    
     await message.answer(
-        "🎬 <b>Создание видео</b>\n\n"
-        "📐 Ориентация: <b>{}</b>\n"
-        "🎞 Осталось видео: <b>{}</b>\n\n"
-        "✏️ <b>Опиши, что хочешь снять:</b>\n"
-        "Например: <code>Рыбаки вытаскивают сеть, в ней русалка</code>".format(
-            "вертикальная" if user_waiting_for_video_orientation[user_id] == "vertical" else "горизонтальная",
-            user['videos_left'] if user else 3
+        get_text(
+            user_language,
+            "create_video",
+            orientation=orientation_text,
+            videos_left=user['videos_left'] if user else 3
         ),
-        reply_markup=main_menu()
+        reply_markup=main_menu(user_language)
     )
 
-async def handle_examples(message: types.Message):
+async def handle_examples(message: types.Message, user_language: str):
     """Обработка кнопки 'Примеры'"""
     await message.answer(
-        "📘 <b>Примеры идей для видео:</b>\n\n"
-        "🔹 Рыбаки вытаскивают сеть, в ней странное существо\n"
-        "🔹 Грибники находят движущуюся массу под листьями\n"
-        "🔹 Бабушка кормит капибару у окна, рассвет\n"
-        "🔹 Советские рабочие открывают капсулу времени\n"
-        "🔹 Дети находят портал в другой мир\n"
-        "🔹 Старый дом с привидениями, ночь\n\n"
-        "💡 <b>Теперь создавай свое видео!</b>",
-        reply_markup=main_menu()
+        get_text(user_language, "examples"),
+        reply_markup=main_menu(user_language)
     )
 
-async def handle_profile(message: types.Message):
+async def handle_profile(message: types.Message, user_language: str):
     """Обработка кнопки 'Кабинет'"""
     user_id = message.from_user.id
     user = await get_user(user_id)
     
     if not user:
-        await message.answer("❌ Ошибка получения данных. Попробуй /start")
+        await message.answer(get_text(user_language, "error_getting_data"))
         return
     
-    profile_text = (
-        "💰 <b>Твой кабинет</b>\n\n"
-        f"👤 Имя: <b>{user['first_name'] or 'Не указано'}</b>\n"
-        f"📦 Пакет: <b>{user['plan_name']}</b>\n"
-        f"🎞 Осталось видео: <b>{user['videos_left']}</b>\n"
-        f"💳 Всего оплачено: <b>{user['total_payments']} ₽</b>\n"
-        f"📅 Регистрация: <b>{user['created_at'].strftime('%d.%m.%Y')}</b>\n\n"
-        "🔁 <b>Нужно больше видео?</b>\n"
-        "Выбери пакет:\n"
-        "🐣 Пробный — 3 видео → ₽490\n"
-        "🎬 Базовый — 10 видео → ₽1 290\n"
-        "🚀 Максимум — 30 видео → ₽2 990"
+    profile_text = get_text(
+        user_language,
+        "profile",
+        name=user['first_name'] or get_text(user_language, "not_specified", default="Not specified"),
+        plan=user['plan_name'],
+        videos_left=user['videos_left'],
+        payments=user['total_payments'],
+        date=user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
     )
     
-    await message.answer(profile_text, reply_markup=main_menu())
+    await message.answer(profile_text, reply_markup=main_menu(user_language))
 
-async def handle_video_description(message: types.Message):
+async def handle_video_description(message: types.Message, user_language: str):
     """Обработка описания видео"""
     user_id = message.from_user.id
     text = message.text.strip()
@@ -363,33 +435,50 @@ async def handle_video_description(message: types.Message):
     # Получаем данные пользователя
     user = await get_user(user_id)
     if not user:
-        await message.answer("❌ Ошибка. Попробуй /start")
+        await message.answer(get_text(user_language, "error_restart"))
         return
     
     if user['videos_left'] <= 0:
         await message.answer(
-            "🚫 <b>У тебя закончились видео!</b>\n\n"
-            "💳 Купи новый пакет в <b>💰 Кабинет</b>",
-            reply_markup=main_menu()
+            get_text(user_language, "no_videos_left"),
+            reply_markup=main_menu(user_language)
         )
         return
     
     # Уменьшаем количество видео
     await update_user_videos(user_id, user['videos_left'] - 1)
     
+    orientation_text = get_text(user_language, f"orientation_{orientation}_name")
+    
     await message.answer(
-        f"🎬 <b>Принято описание!</b>\n\n"
-        f"📝 <b>Описание:</b> {text}\n"
-        f"📐 <b>Ориентация:</b> {'вертикальная' if orientation == 'vertical' else 'горизонтальная'}\n"
-        f"🎞 <b>Осталось видео:</b> {user['videos_left'] - 1}\n\n"
-        "⏳ Видео создается через Sora 2...\n"
-        "📨 Результат будет отправлен сюда!",
-        reply_markup=main_menu()
+        get_text(
+            user_language,
+            "video_accepted",
+            description=text,
+            orientation=orientation_text,
+            videos_left=user['videos_left'] - 1
+        ),
+        reply_markup=main_menu(user_language)
     )
     
     # Очищаем состояние
     if user_id in user_waiting_for_video_orientation:
         del user_waiting_for_video_orientation[user_id]
+
+async def cmd_help(message: types.Message, user_language: str):
+    """Обработка команды /help"""
+    user_waiting_for_support.add(message.from_user.id)
+    await message.answer(
+        get_text(user_language, "help_text"),
+        reply_markup=main_menu(user_language)
+    )
+
+async def handle_language_selection(message: types.Message):
+    """Обработка кнопки выбора языка"""
+    await message.answer(
+        get_text('en', "choose_language"),  # Показываем на английском
+        reply_markup=language_selection()
+    )
 
 # === WEBHOOK HANDLERS ===
 async def handle_webhook(request):
