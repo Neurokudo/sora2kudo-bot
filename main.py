@@ -666,33 +666,20 @@ async def callback_handler(callback: types.CallbackQuery):
             await callback.answer()
             return
         
-        # Создаем подписку через Tribute
-        web_app_link = await create_subscription(user_id, tariff)
+        # ВАЖНО: create_subscription() больше не используется!
+        # Пользователи оплачивают по прямым ссылкам https://web.tribute.tg/p/...
+        # Tribute сам отправляет webhook new_digital_product после оплаты
         
-        if web_app_link:
-            subscription_text = (
-                f"🌍 <b>Subscription plan: {tariff_info['name']}</b>\n\n"
-                f"💰 <b>${tariff_info['price_usd']}</b> per month\n"
-                f"🎬 {tariff_info['videos']} videos monthly\n"
-                f"🔄 Auto-renewal\n\n"
-                f"💳 Click the button below to proceed to payment:"
-            )
-            
-            pay_button = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="💳 PROCEED TO PAYMENT", url=web_app_link)],
-                [InlineKeyboardButton(text="🔙 Back to subscriptions", callback_data="foreign_payment")]
-            ])
-            
-            await callback.message.edit_text(
-                subscription_text,
-                reply_markup=pay_button,
-                parse_mode="HTML"
-            )
-            logging.info(f"✅ Subscription created for user {user_id}, tariff {tariff}")
-        else:
-            await callback.message.edit_text("❌ Не удалось создать подписку. Попробуйте позже.")
-        
+        await callback.message.edit_text(
+            "⚠️ <b>Эта функция больше не используется</b>\n\n"
+            "💳 <b>Для оплаты используйте:</b>\n"
+            "🌱 <b>Trial</b> — €5 → https://web.tribute.tg/p/lEw\n"
+            "✨ <b>Basic</b> — €12 → https://web.tribute.tg/p/lEu\n"
+            "💎 <b>Premium</b> — €25 → https://web.tribute.tg/p/lEv\n\n"
+            "🔄 <b>После оплаты видео начислятся автоматически</b>"
+        )
         await callback.answer()
+        return
     
     # Обработка выбора категории примеров
     elif callback.data.startswith("category_"):
