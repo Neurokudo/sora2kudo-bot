@@ -167,6 +167,15 @@ async def init_database():
                 ''')
                 if trial_users_updated and trial_users_updated > 0:
                     logging.info(f"✅ Updated {trial_users_updated} users from 'trial' to 'Без тарифа'")
+                
+                # Изменяем дефолтные значения в таблице для новых пользователей
+                await conn.execute('''
+                    ALTER TABLE users ALTER COLUMN plan_name SET DEFAULT 'Без тарифа'
+                ''')
+                await conn.execute('''
+                    ALTER TABLE users ALTER COLUMN videos_left SET DEFAULT 0
+                ''')
+                logging.info("✅ Updated default values: plan_name='Без тарифа', videos_left=0")
             
             # Создание индекса для быстрого поиска по user_id
             await conn.execute('''
