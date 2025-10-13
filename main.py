@@ -1200,32 +1200,15 @@ async def tribute_subscription_webhook(request):
         event_name = data.get('name')
         payload = data.get('payload', {})
         
-        if event_name == 'new_donation':
-            # Первый донат - активируем подписку
+        if event_name == 'newSubscription':
+            # Новая подписка - активируем тариф
             telegram_user_id = payload.get('telegram_user_id')
-            donation_name = payload.get('donation_name', '')
-            amount = payload.get('amount', 0)
+            metadata = payload.get('metadata', {})
+            tariff = metadata.get('tariff')
+            videos_count = int(metadata.get('videos_count', 0))
+            price_usd = metadata.get('price_usd', '0')
             
-            # Определяем тариф по названию доната
-            if 'Trial' in donation_name:
-                tariff = 'trial'
-                videos_count = 3
-                price_usd = 5
-            elif 'Basic' in donation_name:
-                tariff = 'basic'
-                videos_count = 10
-                price_usd = 12
-            elif 'Premium' in donation_name:
-                tariff = 'maximum'
-                videos_count = 30
-                price_usd = 25
-            else:
-                # Fallback - даем минимальное количество видео
-                tariff = 'trial'
-                videos_count = 3
-                price_usd = 5
-            
-            if telegram_user_id:
+            if telegram_user_id and tariff and videos_count:
                 # Добавляем видео пользователю
                 await update_user_videos(telegram_user_id, videos_count)
                 
@@ -1250,56 +1233,31 @@ async def tribute_subscription_webhook(request):
                 except Exception as e:
                     logging.error(f"❌ Error sending subscription success message to user {telegram_user_id}: {e}")
         
-        elif event_name == 'recurrent_donation':
-            # Регулярный донат - добавляем видео каждый месяц
+        elif event_name == 'recurrentSubscription':
+            # Регулярная подписка - добавляем видео каждый месяц
             telegram_user_id = payload.get('telegram_user_id')
-            donation_name = payload.get('donation_name', '')
+            metadata = payload.get('metadata', {})
+            videos_count = int(metadata.get('videos_count', 0))
+            price_usd = metadata.get('price_usd', '0')
             
-            # Определяем тариф по названию доната
-            if 'Trial' in donation_name:
-                tariff = 'trial'
-                videos_count = 3
-                price_usd = 5
-            elif 'Basic' in donation_name:
-                tariff = 'basic'
-                videos_count = 10
-                price_usd = 12
-            elif 'Premium' in donation_name:
-                tariff = 'maximum'
-                videos_count = 30
-                price_usd = 25
-            else:
-                # Fallback - даем минимальное количество видео
-                tariff = 'trial'
-                videos_count = 3
-                price_usd = 5
-            
-            if telegram_user_id:
+            if telegram_user_id and videos_count:
                 # Добавляем видео пользователю
                 await update_user_videos(telegram_user_id, videos_count)
                 
-                # Отправляем уведомление о продлении
+                # Отправляем подтверждение пользователю
                 try:
-                    tariff_names = {
-                        "trial": "🌱 Trial",
-                        "basic": "✨ Basic", 
-                        "maximum": "💎 Premium"
-                    }
-                    tariff_name = tariff_names.get(tariff, tariff.title())
-                    
                     await bot.send_message(
                         telegram_user_id,
                         f"🔄 <b>Subscription renewed!</b>\n\n"
-                        f"✅ Plan: <b>{tariff_name}</b>\n"
                         f"🎬 Videos added: <b>{videos_count}</b>\n"
                         f"💰 Price: <b>${price_usd}/month</b>\n\n"
-                        f"Thank you for continuing your subscription!"
+                        f"✅ Your subscription continues"
                     )
-                    logging.info(f"✅ Tribute subscription renewed for user {telegram_user_id}, tariff {tariff}")
+                    logging.info(f"✅ Tribute subscription renewed for user {telegram_user_id}")
                 except Exception as e:
                     logging.error(f"❌ Error sending subscription renewal message to user {telegram_user_id}: {e}")
         
-        elif event_name == 'cancelled_donation':
+        elif event_name == 'cancelledSubscription':
             # Отмена подписки
             telegram_user_id = payload.get('telegram_user_id')
             if telegram_user_id:
