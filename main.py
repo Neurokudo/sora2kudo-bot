@@ -18,6 +18,7 @@ from yookassa import Configuration, Payment
 from translations import get_text, is_rtl_language
 from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
+from tribute_subscription import create_subscription, get_tariff_info
 
 # Импорт Sora client
 from sora_client import create_sora_task, extract_user_from_param
@@ -635,6 +636,44 @@ async def callback_handler(callback: types.CallbackQuery):
         user_language = user.get('language', 'en') if user else 'en'
         await handle_foreign_payment(callback, user_language)
     
+    # Обработка выбора подписок Tribute
+    elif callback.data.startswith("sub_"):
+        tariff = callback.data.replace("sub_", "")
+        tariff_info = get_tariff_info(tariff)
+        
+        if not tariff_info:
+            await callback.message.edit_text("❌ Неизвестный тариф. Попробуйте позже.")
+            await callback.answer()
+            return
+        
+        # Создаем подписку через Tribute
+        web_app_link = await create_subscription(user_id, tariff)
+        
+        if web_app_link:
+            subscription_text = (
+                f"🌍 <b>Подписка на тариф {tariff_info['name']}</b>\n\n"
+                f"💰 Стоимость: <b>{tariff_info['price_rub']} ₽/мес</b>\n"
+                f"🎬 Видео: <b>{tariff_info['videos']} в месяц</b>\n"
+                f"🔄 Автоматическое продление\n\n"
+                f"💳 Нажмите кнопку ниже для оплаты:"
+            )
+            
+            pay_button = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="💳 ОПЛАТИТЬ ПОДПИСКУ", url=web_app_link)],
+                [InlineKeyboardButton(text="🔙 Назад к подпискам", callback_data="foreign_payment")]
+            ])
+            
+            await callback.message.edit_text(
+                subscription_text,
+                reply_markup=pay_button,
+                parse_mode="HTML"
+            )
+            logging.info(f"✅ Subscription created for user {user_id}, tariff {tariff}")
+        else:
+            await callback.message.edit_text("❌ Не удалось создать подписку. Попробуйте позже.")
+        
+        await callback.answer()
+    
     # Обработка выбора категории примеров
     elif callback.data.startswith("category_"):
         category_key = callback.data.replace("category_", "")
@@ -1002,7 +1041,7 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
         await callback.answer()
 
 async def handle_foreign_payment(callback: types.CallbackQuery, user_language: str):
-    """Обработка оплаты через Tribute (иностранные карты)"""
+    """Обработка оплаты через Tribute (иностранные карты) - выбор подписок"""
     user_id = callback.from_user.id
     
     logging.info(f"🌍 Processing foreign payment for user {user_id}")
@@ -1014,72 +1053,22 @@ async def handle_foreign_payment(callback: types.CallbackQuery, user_language: s
         await callback.answer()
         return
     
-    try:
-        # Параметры для Tribute API (используем донаты)
-        amount = 1000  # 10 USD в центах
-        headers = {
-            "Api-Key": TRIBUTE_API_KEY, 
-            "Content-Type": "application/json",
-            "User-Agent": "SORA2Bot/1.0"
-        }
-        payload = {
-            "donation_name": "SORA 2 Bot Tariff - Foreign Card",
-            "amount": amount,
-            "currency": "usd",
-            "message": f"Payment for user {user_id}",
-            "period": "once",
-            "anonymously": False
-        }
-        
-        logging.info(f"🌍 Creating Tribute donation: {payload}")
-        
-        # Создаем донат через Tribute API
-        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
-            async with session.post(
-                "https://tribute.tg/api/v1/donations", 
-                json=payload, 
-                headers=headers
-            ) as response:
-                
-                response_text = await response.text()
-                logging.info(f"🌍 Tribute API response status: {response.status}")
-                logging.info(f"🌍 Tribute API response: {response_text}")
-                
-                if response.status == 200:
-                    try:
-                        data = await response.json()
-                        web_app_link = data.get("web_app_link")
-                        
-                        if web_app_link:
-                            payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n💰 Сумма: $10.00 USD\n\nПосле успешной оплаты тариф активируется автоматически."
-                            
-                            # Создаем inline кнопку для оплаты
-                            pay_button = InlineKeyboardMarkup(inline_keyboard=[
-                                [InlineKeyboardButton(text="💳 ОПЛАТИТЬ", url=web_app_link)]
-                            ])
-                            
-                            await callback.message.edit_text(payment_text, reply_markup=pay_button)
-                            logging.info(f"✅ Foreign payment created successfully for user {user_id}")
-                        else:
-                            logging.error(f"❌ No web_app_link in response: {data}")
-                            await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
-                    except Exception as json_error:
-                        logging.error(f"❌ JSON parsing error: {json_error}")
-                        await callback.message.edit_text("❌ Ошибка обработки ответа. Попробуйте позже.")
-                else:
-                    logging.error(f"❌ Tribute API error: {response.status} - {response_text}")
-                    await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
-        
-        await callback.answer()
-        
-    except aiohttp.ClientError as e:
-        logging.error(f"❌ Network error in handle_foreign_payment: {e}")
-        await callback.message.edit_text("❌ Ошибка сети. Проверьте интернет и попробуйте позже.")
-        await callback.answer()
-    except Exception as e:
-        logging.error(f"❌ Unexpected error in handle_foreign_payment: {e}")
-        await callback.message.edit_text("❌ Произошла ошибка. Попробуйте позже.")
-        await callback.answer()
+    # Показываем выбор подписок
+    subscription_text = "🌍 <b>Подписки через иностранную карту</b>\n\n💳 Выберите тариф для ежемесячной подписки:"
+    
+    subscription_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🌱 Пробный - ₽390/мес (3 видео)", callback_data="sub_trial")],
+        [InlineKeyboardButton(text="✨ Базовый - ₽990/мес (10 видео)", callback_data="sub_basic")],
+        [InlineKeyboardButton(text="💎 Максимум - ₽2,190/мес (30 видео)", callback_data="sub_maximum")],
+        [InlineKeyboardButton(text="🔙 Назад к тарифам", callback_data="buy_tariff")]
+    ])
+    
+    await callback.message.edit_text(
+        subscription_text,
+        reply_markup=subscription_keyboard,
+        parse_mode="HTML"
+    )
+    await callback.answer()
 
 # === WEBHOOK HANDLERS ===
 async def handle_webhook(request):
@@ -1151,10 +1140,10 @@ async def yookassa_webhook(request):
         return web.Response(text="Error", status=500)
 
 async def tribute_webhook(request):
-    """Обработчик webhook от Tribute"""
+    """Обработчик webhook от Tribute для донатов"""
     try:
         data = await request.json()
-        logging.info(f"🎬 Tribute webhook received: {data}")
+        logging.info(f"🎬 Tribute donation webhook received: {data}")
         
         # Проверяем тип события согласно документации Tribute
         event_name = data.get('name')
@@ -1176,7 +1165,7 @@ async def tribute_webhook(request):
                         telegram_user_id,
                         f"🎉 <b>Оплата прошла успешно!</b>\n\n✅ Тариф активирован\n🎬 Видео на балансе: {videos_to_add}\n\nСпасибо за покупку!"
                     )
-                    logging.info(f"✅ Tribute payment processed for user {telegram_user_id}")
+                    logging.info(f"✅ Tribute donation processed for user {telegram_user_id}")
                 except Exception as e:
                     logging.error(f"❌ Error sending success message to user {telegram_user_id}: {e}")
         
@@ -1198,7 +1187,71 @@ async def tribute_webhook(request):
         return web.Response(text="OK")
         
     except Exception as e:
-        logging.error(f"❌ Error in Tribute webhook: {e}")
+        logging.error(f"❌ Error in Tribute donation webhook: {e}")
+        return web.Response(text="Error", status=500)
+
+async def tribute_subscription_webhook(request):
+    """Webhook от Tribute для ежемесячных подписок"""
+    try:
+        data = await request.json()
+        logging.info(f"🎬 Tribute subscription webhook received: {data}")
+        
+        # Проверяем тип события согласно документации Tribute
+        event_name = data.get('name')
+        payload = data.get('payload', {})
+        
+        if event_name == 'newSubscription':
+            # Новая подписка - активируем тариф
+            telegram_user_id = payload.get('telegram_user_id')
+            metadata = payload.get('metadata', {})
+            tariff = metadata.get('tariff')
+            videos_count = int(metadata.get('videos_count', 0))
+            price_rub = metadata.get('price_rub', '0')
+            
+            if telegram_user_id and tariff and videos_count:
+                # Добавляем видео пользователю
+                await update_user_videos(telegram_user_id, videos_count)
+                
+                # Отправляем подтверждение пользователю
+                try:
+                    tariff_names = {
+                        "trial": "🌱 Пробный",
+                        "basic": "✨ Базовый", 
+                        "maximum": "💎 Максимум"
+                    }
+                    tariff_name = tariff_names.get(tariff, tariff.title())
+                    
+                    await bot.send_message(
+                        telegram_user_id,
+                        f"🎉 <b>Подписка активирована!</b>\n\n"
+                        f"✅ Тариф: <b>{tariff_name}</b>\n"
+                        f"🎬 Добавлено видео: <b>{videos_count}</b>\n"
+                        f"💰 Стоимость: <b>{price_rub} ₽/мес</b>\n\n"
+                        f"🔄 Подписка будет продлеваться автоматически каждый месяц"
+                    )
+                    logging.info(f"✅ Tribute subscription activated for user {telegram_user_id}, tariff {tariff}")
+                except Exception as e:
+                    logging.error(f"❌ Error sending subscription success message to user {telegram_user_id}: {e}")
+        
+        elif event_name == 'cancelledSubscription':
+            # Отмена подписки
+            telegram_user_id = payload.get('telegram_user_id')
+            if telegram_user_id:
+                try:
+                    await bot.send_message(
+                        telegram_user_id,
+                        "❌ <b>Подписка отменена</b>\n\n"
+                        "Ваша подписка была отменена. "
+                        "Оставшиеся видео на балансе остаются доступными до окончания текущего периода."
+                    )
+                    logging.info(f"✅ Tribute subscription cancelled for user {telegram_user_id}")
+                except Exception as e:
+                    logging.error(f"❌ Error sending subscription cancellation message to user {telegram_user_id}: {e}")
+        
+        return web.Response(text="OK")
+        
+    except Exception as e:
+        logging.error(f"❌ Error in Tribute subscription webhook: {e}")
         return web.Response(text="Error", status=500)
 
 async def sora_callback(request):
@@ -1305,7 +1358,8 @@ def create_app():
     app.router.add_post("/webhook", handle_webhook)
     app.router.add_post("/yookassa_webhook", yookassa_webhook)
     app.router.add_post("/webhook/yookassa", yookassa_webhook)  # Дополнительный маршрут для YooKassa
-    app.router.add_post("/tribute_webhook", tribute_webhook)
+    app.router.add_post("/tribute_webhook", tribute_webhook)  # Webhook для донатов Tribute
+    app.router.add_post("/tribute_subscription_webhook", tribute_subscription_webhook)  # Webhook для подписок Tribute
     app.router.add_post("/sora_callback", sora_callback)  # Callback от Kie.AI Sora-2
     app.router.add_get("/health", health)
     
