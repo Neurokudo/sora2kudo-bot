@@ -399,10 +399,10 @@ async def cmd_start(message: types.Message):
     # Получаем язык пользователя
     user_language = user.get('language', 'en') if user else 'en'
     
-    # Если язык не установлен, показываем выбор языка
+    # Если язык не установлен, показываем выбор языка на двух языках
     if not user or not user.get('language'):
         await message.answer(
-            get_text('en', "choose_language"),  # Показываем на английском
+            "🌍 <b>Выберите язык / Choose your language:</b>",
             reply_markup=language_selection()
         )
         return
@@ -558,8 +558,8 @@ async def callback_handler(callback: types.CallbackQuery):
             user_language, 
             "welcome",
             name=first_name,
-            plan=user.get('plan_name', 'trial') if user else 'trial',
-            videos_left=user.get('videos_left', 3) if user else 3
+            plan=user.get('plan_name', 'Без тарифа') if user else 'Без тарифа',
+            videos_left=user.get('videos_left', 0) if user else 0
         )
         
         await callback.message.answer(
