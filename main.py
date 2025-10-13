@@ -666,18 +666,8 @@ async def callback_handler(callback: types.CallbackQuery):
             await callback.answer()
             return
         
-        # ВАЖНО: create_subscription() больше не используется!
-        # Пользователи оплачивают по прямым ссылкам https://web.tribute.tg/p/...
-        # Tribute сам отправляет webhook new_digital_product после оплаты
-        
-        await callback.message.edit_text(
-            "⚠️ <b>Эта функция больше не используется</b>\n\n"
-            "💳 <b>Для оплаты используйте:</b>\n"
-            "🌱 <b>Trial</b> — €5 → https://web.tribute.tg/p/lEw\n"
-            "✨ <b>Basic</b> — €12 → https://web.tribute.tg/p/lEu\n"
-            "💎 <b>Premium</b> — €25 → https://web.tribute.tg/p/lEv\n\n"
-            "🔄 <b>После оплаты видео начислятся автоматически</b>"
-        )
+        # Показываем меню Tribute тарифов
+        await send_foreign_tariffs(callback.message, user_language)
         await callback.answer()
         return
     
