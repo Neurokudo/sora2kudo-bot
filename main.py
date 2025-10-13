@@ -666,6 +666,10 @@ async def callback_handler(callback: types.CallbackQuery):
             await callback.answer()
             return
         
+        # Получаем язык пользователя
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
         # Показываем меню Tribute тарифов
         await send_foreign_tariffs(callback.message, user_language)
         await callback.answer()
