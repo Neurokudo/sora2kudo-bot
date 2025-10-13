@@ -57,6 +57,7 @@ LANG = {
         "foreign_trial": "Пробный",
         "foreign_basic": "Базовый", 
         "foreign_premium": "Максимум",
+        "videos": "видео",
         
                 # Сообщения для пользователей без тарифа
                 "no_tariff_message": "🚀 <b>Начни создавать вирусные видео прямо сейчас!</b>\n\n💎 <b>Выбери тариф и получи доступ к SORA 2:</b>\n🌱 <b>Пробный</b> — 3 видео за ₽390\n✨ <b>Базовый</b> — 10 видео за ₽990\n💎 <b>Максимум</b> — 30 видео за ₽2 190\n\n🔥 <b>Создавай крутые видео и радуй друзей и подписчиков!</b>",
@@ -121,6 +122,7 @@ LANG = {
         "foreign_trial": "Trial",
         "foreign_basic": "Basic",
         "foreign_premium": "Premium",
+        "videos": "videos",
         
                 # Сообщения для пользователей без тарифа
                 "no_tariff_message": "🚀 <b>Start creating viral videos right now!</b>\n\n💎 <b>Choose a tariff and get access to SORA 2:</b>\n🌱 <b>Trial</b> — 3 videos for ₽390\n✨ <b>Basic</b> — 10 videos for ₽990\n💎 <b>Maximum</b> — 30 videos for ₽2 190\n\n🔥 <b>Create amazing videos and delight your friends and followers!</b>",
@@ -176,6 +178,7 @@ LANG = {
         "foreign_trial": "Prueba",
         "foreign_basic": "Básico",
         "foreign_premium": "Premium",
+        "videos": "videos",
         
         # Общие фразы
         "use_buttons": "💡 ¡Usa botones del menú o elige orientación de video!",
@@ -227,6 +230,7 @@ LANG = {
         "foreign_trial": "تجريبي",
         "foreign_basic": "أساسي",
         "foreign_premium": "مميز",
+        "videos": "فيديو",
         
         # Общие фразы
         "use_buttons": "💡 استخدم أزرار القائمة أو اختر اتجاه الفيديو!",
@@ -278,6 +282,7 @@ LANG = {
         "foreign_trial": "ट्रायल",
         "foreign_basic": "बेसिक",
         "foreign_premium": "प्रीमियम",
+        "videos": "वीडियो",
         
         # Общие фразы
         "use_buttons": "💡 मेनू बटन का उपयोग करें या वीडियो दिशा चुनें!",

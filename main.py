@@ -830,22 +830,23 @@ async def handle_examples(message: types.Message, user_language: str):
 
 async def send_foreign_tariffs(message: types.Message, user_language: str):
     """Показ тарифов Tribute для иностранных пользователей"""
-    # Получаем переводы названий тарифов
+    # Получаем переводы названий тарифов и слова "видео"
     trial_name = get_text(user_language, 'foreign_trial')
     basic_name = get_text(user_language, 'foreign_basic')
     premium_name = get_text(user_language, 'foreign_premium')
+    videos_word = get_text(user_language, 'videos')
     
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=f"🌱 {trial_name} — €5", url="https://web.tribute.tg/p/lEw")],
-        [InlineKeyboardButton(text=f"✨ {basic_name} — €12", url="https://web.tribute.tg/p/lEu")],
-        [InlineKeyboardButton(text=f"💎 {premium_name} — €25", url="https://web.tribute.tg/p/lEv")]
+        [InlineKeyboardButton(text=f"🌱 {trial_name} — 3 {videos_word} — €5", url="https://web.tribute.tg/p/lEw")],
+        [InlineKeyboardButton(text=f"✨ {basic_name} — 10 {videos_word} — €12", url="https://web.tribute.tg/p/lEu")],
+        [InlineKeyboardButton(text=f"💎 {premium_name} — 30 {videos_word} — €25", url="https://web.tribute.tg/p/lEv")]
     ])
     
     text = (
         f"{get_text(user_language, 'foreign_card_title')}\n\n"
-        f"🌱 <b>{trial_name}</b> — 3 видео — €5\n"
-        f"✨ <b>{basic_name}</b> — 10 видео — €12\n"
-        f"💎 <b>{premium_name}</b> — 30 видео — €25\n\n"
+        f"🌱 <b>{trial_name}</b> — 3 {videos_word} — €5\n"
+        f"✨ <b>{basic_name}</b> — 10 {videos_word} — €12\n"
+        f"💎 <b>{premium_name}</b> — 30 {videos_word} — €25\n\n"
         f"{get_text(user_language, 'foreign_card_description')}"
     )
     
