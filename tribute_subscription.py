@@ -32,24 +32,20 @@ async def create_subscription(user_id: int, tariff: str):
         "User-Agent": "SORA2Bot/1.0"
     }
     
-    # Создаем донат-подписку через Tribute API (используем донаты для подписок)
+    # Создаем донат-подписку через Tribute API (упрощенная структура)
     payload = {
         "donation_name": f"{tariff_data['name']} - SORA 2 Bot",
         "amount": tariff_data["price_usd"] * 100,  # в центах USD
         "currency": "usd",
         "period": "monthly",  # ежемесячное повторение
-        "description": f"Monthly subscription {tariff_data['name']} - {tariff_data['videos']} videos per month",
         "message": f"Subscription for user {user_id}",
-        "anonymously": False,
-        "metadata": {
-            "user_id": str(user_id),
-            "tariff": tariff,
-            "videos_count": str(tariff_data['videos']),
-            "price_usd": str(tariff_data['price_usd'])
-        }
+        "anonymously": False
     }
     
-    logging.info(f"🌍 Creating Tribute subscription for user {user_id}, tariff {tariff}: {payload}")
+    logging.info(f"🌍 Creating Tribute subscription for user {user_id}, tariff {tariff}")
+    logging.info(f"🌍 API URL: {TRIBUTE_API_URL}/donations")
+    logging.info(f"🌍 Headers: {headers}")
+    logging.info(f"🌍 Payload: {payload}")
     
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:

@@ -1203,12 +1203,29 @@ async def tribute_subscription_webhook(request):
         if event_name == 'new_donation':
             # Первый донат - активируем подписку
             telegram_user_id = payload.get('telegram_user_id')
-            metadata = payload.get('metadata', {})
-            tariff = metadata.get('tariff')
-            videos_count = int(metadata.get('videos_count', 0))
-            price_usd = metadata.get('price_usd', '0')
+            donation_name = payload.get('donation_name', '')
+            amount = payload.get('amount', 0)
             
-            if telegram_user_id and tariff and videos_count:
+            # Определяем тариф по названию доната
+            if 'Trial' in donation_name:
+                tariff = 'trial'
+                videos_count = 3
+                price_usd = 5
+            elif 'Basic' in donation_name:
+                tariff = 'basic'
+                videos_count = 10
+                price_usd = 12
+            elif 'Premium' in donation_name:
+                tariff = 'maximum'
+                videos_count = 30
+                price_usd = 25
+            else:
+                # Fallback - даем минимальное количество видео
+                tariff = 'trial'
+                videos_count = 3
+                price_usd = 5
+            
+            if telegram_user_id:
                 # Добавляем видео пользователю
                 await update_user_videos(telegram_user_id, videos_count)
                 
@@ -1236,12 +1253,28 @@ async def tribute_subscription_webhook(request):
         elif event_name == 'recurrent_donation':
             # Регулярный донат - добавляем видео каждый месяц
             telegram_user_id = payload.get('telegram_user_id')
-            metadata = payload.get('metadata', {})
-            tariff = metadata.get('tariff')
-            videos_count = int(metadata.get('videos_count', 0))
-            price_usd = metadata.get('price_usd', '0')
+            donation_name = payload.get('donation_name', '')
             
-            if telegram_user_id and tariff and videos_count:
+            # Определяем тариф по названию доната
+            if 'Trial' in donation_name:
+                tariff = 'trial'
+                videos_count = 3
+                price_usd = 5
+            elif 'Basic' in donation_name:
+                tariff = 'basic'
+                videos_count = 10
+                price_usd = 12
+            elif 'Premium' in donation_name:
+                tariff = 'maximum'
+                videos_count = 30
+                price_usd = 25
+            else:
+                # Fallback - даем минимальное количество видео
+                tariff = 'trial'
+                videos_count = 3
+                price_usd = 5
+            
+            if telegram_user_id:
                 # Добавляем видео пользователю
                 await update_user_videos(telegram_user_id, videos_count)
                 
