@@ -18,7 +18,17 @@ from yookassa import Configuration, Payment
 from translations import get_text, is_rtl_language
 from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
-from tribute_subscription import create_subscription, get_tariff_info
+# from tribute_subscription import create_subscription, get_tariff_info
+
+# ВРЕМЕННАЯ заглушка для get_tariff_info
+def get_tariff_info(tariff):
+    """Заглушка для get_tariff_info пока Tribute API не работает"""
+    tariff_data = {
+        "trial": {"name": "🌱 Пробный", "price_usd": 3.90, "videos": 3},
+        "basic": {"name": "✨ Базовый", "price_usd": 9.90, "videos": 10},
+        "maximum": {"name": "💎 Максимум", "price_usd": 21.90, "videos": 30}
+    }
+    return tariff_data.get(tariff)
 
 # Импорт Sora client
 from sora_client import create_sora_task, extract_user_from_param
@@ -645,8 +655,9 @@ async def callback_handler(callback: types.CallbackQuery):
             await callback.answer()
             return
         
-        # Создаем подписку через Tribute
-        web_app_link = await create_subscription(user_id, tariff)
+        # ВРЕМЕННО: Tribute API не работает, используем заглушку
+        # web_app_link = await create_subscription(user_id, tariff)
+        web_app_link = None  # Заглушка
         
         if web_app_link:
             subscription_text = (
