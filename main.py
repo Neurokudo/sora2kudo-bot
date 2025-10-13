@@ -1244,6 +1244,9 @@ async def tribute_webhook(request):
 async def tribute_subscription_webhook(request):
     """Webhook от Tribute для ежемесячных подписок"""
     try:
+        # Логируем все заголовки для диагностики
+        logging.info(f"🔍 Tribute webhook headers: {dict(request.headers)}")
+        
         data = await request.json()
         signature = request.headers.get("trbt-signature")
         logging.info(f"🎬 Tribute webhook received: {data}")
