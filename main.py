@@ -830,17 +830,22 @@ async def handle_examples(message: types.Message, user_language: str):
 
 async def send_foreign_tariffs(message: types.Message, user_language: str):
     """Показ тарифов Tribute для иностранных пользователей"""
+    # Получаем переводы названий тарифов
+    trial_name = get_text(user_language, 'foreign_trial')
+    basic_name = get_text(user_language, 'foreign_basic')
+    premium_name = get_text(user_language, 'foreign_premium')
+    
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🌱 Trial — €5", url="https://web.tribute.tg/p/lEw")],
-        [InlineKeyboardButton(text="✨ Basic — €12", url="https://web.tribute.tg/p/lEu")],
-        [InlineKeyboardButton(text="💎 Premium — €25", url="https://web.tribute.tg/p/lEv")]
+        [InlineKeyboardButton(text=f"🌱 {trial_name} — €5", url="https://web.tribute.tg/p/lEw")],
+        [InlineKeyboardButton(text=f"✨ {basic_name} — €12", url="https://web.tribute.tg/p/lEu")],
+        [InlineKeyboardButton(text=f"💎 {premium_name} — €25", url="https://web.tribute.tg/p/lEv")]
     ])
     
     text = (
         f"{get_text(user_language, 'foreign_card_title')}\n\n"
-        f"🌱 <b>Trial</b> — 3 videos (€5)\n"
-        f"✨ <b>Basic</b> — 10 videos (€12)\n"
-        f"💎 <b>Premium</b> — 30 videos (€25)\n\n"
+        f"🌱 <b>{trial_name}</b> — 3 видео — €5\n"
+        f"✨ <b>{basic_name}</b> — 10 видео — €12\n"
+        f"💎 <b>{premium_name}</b> — 30 видео — €25\n\n"
         f"{get_text(user_language, 'foreign_card_description')}"
     )
     
@@ -1091,13 +1096,18 @@ async def handle_foreign_payment(callback: types.CallbackQuery, user_language: s
         await callback.answer()
         return
     
-    # Показываем выбор подписок в долларах
-    subscription_text = "🌍 <b>Foreign Card Subscriptions</b>\n\n💳 Choose your monthly subscription plan:"
+    # Получаем переводы названий тарифов
+    trial_name = get_text(user_language, 'foreign_trial')
+    basic_name = get_text(user_language, 'foreign_basic')
+    premium_name = get_text(user_language, 'foreign_premium')
+    
+    # Показываем выбор подписок в евро
+    subscription_text = f"🌍 <b>{get_text(user_language, 'foreign_card_title')}</b>\n\n💳 {get_text(user_language, 'foreign_card_description')}"
     
     subscription_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🌱 Trial — $5 / month", callback_data="sub_trial")],
-        [InlineKeyboardButton(text="✨ Basic — $12 / month", callback_data="sub_basic")],
-        [InlineKeyboardButton(text="💎 Premium — $25 / month", callback_data="sub_maximum")],
+        [InlineKeyboardButton(text=f"🌱 {trial_name} — €5", callback_data="sub_trial")],
+        [InlineKeyboardButton(text=f"✨ {basic_name} — €12", callback_data="sub_basic")],
+        [InlineKeyboardButton(text=f"💎 {premium_name} — €25", callback_data="sub_maximum")],
         [InlineKeyboardButton(text="🔙 Назад к тарифам", callback_data="buy_tariff")]
     ])
     

@@ -54,6 +54,9 @@ LANG = {
         "tariff_selection": "💳 <b>Выберите тариф для покупки:</b>",
         "foreign_card_title": "💰 <b>Выберите ваш план:</b>",
         "foreign_card_description": "🌍 Оплата работает по всему миру — Tribute автоматически конвертирует цену в вашу локальную валюту.\n\nПосле оплаты ваш аккаунт в @sora2kudo_bot будет обновлен автоматически 🎬",
+        "foreign_trial": "Пробный",
+        "foreign_basic": "Базовый", 
+        "foreign_premium": "Максимум",
         
                 # Сообщения для пользователей без тарифа
                 "no_tariff_message": "🚀 <b>Начни создавать вирусные видео прямо сейчас!</b>\n\n💎 <b>Выбери тариф и получи доступ к SORA 2:</b>\n🌱 <b>Пробный</b> — 3 видео за ₽390\n✨ <b>Базовый</b> — 10 видео за ₽990\n💎 <b>Максимум</b> — 30 видео за ₽2 190\n\n🔥 <b>Создавай крутые видео и радуй друзей и подписчиков!</b>",
@@ -115,6 +118,9 @@ LANG = {
         "tariff_selection": "💳 <b>Choose tariff to purchase:</b>",
         "foreign_card_title": "💰 <b>Choose your plan:</b>",
         "foreign_card_description": "🌍 Payment works worldwide — Tribute automatically converts the price to your local currency.\n\nAfter payment, your account in @sora2kudo_bot will be updated automatically 🎬",
+        "foreign_trial": "Trial",
+        "foreign_basic": "Basic",
+        "foreign_premium": "Premium",
         
                 # Сообщения для пользователей без тарифа
                 "no_tariff_message": "🚀 <b>Start creating viral videos right now!</b>\n\n💎 <b>Choose a tariff and get access to SORA 2:</b>\n🌱 <b>Trial</b> — 3 videos for ₽390\n✨ <b>Basic</b> — 10 videos for ₽990\n💎 <b>Maximum</b> — 30 videos for ₽2 190\n\n🔥 <b>Create amazing videos and delight your friends and followers!</b>",
@@ -167,6 +173,9 @@ LANG = {
         "btn_buy_foreign": "💳 Tarjeta Extranjera",
         "foreign_card_title": "💰 <b>Elige tu plan:</b>",
         "foreign_card_description": "🌍 El pago funciona en todo el mundo — Tribute convierte automáticamente el precio a tu moneda local.\n\nDespués del pago, tu cuenta en @sora2kudo_bot se actualizará automáticamente 🎬",
+        "foreign_trial": "Prueba",
+        "foreign_basic": "Básico",
+        "foreign_premium": "Premium",
         
         # Общие фразы
         "use_buttons": "💡 ¡Usa botones del menú o elige orientación de video!",
@@ -215,6 +224,9 @@ LANG = {
         "btn_buy_foreign": "💳 بطاقة أجنبية",
         "foreign_card_title": "💰 <b>اختر خطتك:</b>",
         "foreign_card_description": "🌍 الدفع يعمل في جميع أنحاء العالم — Tribute يحول السعر تلقائياً إلى عملتك المحلية.\n\nبعد الدفع، سيتم تحديث حسابك في @sora2kudo_bot تلقائياً 🎬",
+        "foreign_trial": "تجريبي",
+        "foreign_basic": "أساسي",
+        "foreign_premium": "مميز",
         
         # Общие фразы
         "use_buttons": "💡 استخدم أزرار القائمة أو اختر اتجاه الفيديو!",
@@ -263,6 +275,9 @@ LANG = {
         "btn_buy_foreign": "💳 विदेशी कार्ड",
         "foreign_card_title": "💰 <b>अपनी योजना चुनें:</b>",
         "foreign_card_description": "🌍 भुगतान दुनिया भर में काम करता है — Tribute आपकी स्थानीय मुद्रा में कीमत को स्वचालित रूप से परिवर्तित करता है।\n\nभुगतान के बाद, @sora2kudo_bot में आपका खाता स्वचालित रूप से अपडेट हो जाएगा 🎬",
+        "foreign_trial": "ट्रायल",
+        "foreign_basic": "बेसिक",
+        "foreign_premium": "प्रीमियम",
         
         # Общие фразы
         "use_buttons": "💡 मेनू बटन का उपयोग करें या वीडियो दिशा चुनें!",
