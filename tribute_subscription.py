@@ -67,36 +67,35 @@ async def create_subscription(user_id: int, tariff: str):
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
             for endpoint in endpoints_to_try:
                 logging.info(f"🌍 Trying endpoint: {endpoint}")
-                    async with session.post(
-                        endpoint, 
-                        headers=headers, 
-                        json=payload
-                    ) as response:
-                        
-                        response_text = await response.text()
-                        logging.info(f"🌍 Tribute API response status: {response.status} for {endpoint}")
-                        logging.info(f"🌍 Tribute API response: {response_text}")
-                        
-                        if response.status == 200:
-                            try:
-                                data = await response.json()
-                                web_app_link = data.get("web_app_link")
-                                
-                                if web_app_link:
-                                    logging.info(f"✅ Tribute subscription created successfully for user {user_id} via {endpoint}")
-                                    return web_app_link
-                                else:
-                                    logging.warning(f"⚠️ No web_app_link in response from {endpoint}: {data}")
-                                    continue  # Попробуем следующий endpoint
-                            except Exception as json_error:
-                                logging.warning(f"⚠️ JSON parsing error from {endpoint}: {json_error}")
+                async with session.post(
+                    endpoint, 
+                    headers=headers, 
+                    json=payload
+                ) as response:
+                    response_text = await response.text()
+                    logging.info(f"🌍 Tribute API response status: {response.status} for {endpoint}")
+                    logging.info(f"🌍 Tribute API response: {response_text}")
+                    
+                    if response.status == 200:
+                        try:
+                            data = await response.json()
+                            web_app_link = data.get("web_app_link")
+                            
+                            if web_app_link:
+                                logging.info(f"✅ Tribute subscription created successfully for user {user_id} via {endpoint}")
+                                return web_app_link
+                            else:
+                                logging.warning(f"⚠️ No web_app_link in response from {endpoint}: {data}")
                                 continue  # Попробуем следующий endpoint
-                        elif response.status == 404:
-                            logging.warning(f"⚠️ Endpoint {endpoint} not found (404), trying next...")
+                        except Exception as json_error:
+                            logging.warning(f"⚠️ JSON parsing error from {endpoint}: {json_error}")
                             continue  # Попробуем следующий endpoint
-                        else:
-                            logging.warning(f"⚠️ Error {response.status} from {endpoint}: {response_text}")
-                            continue  # Попробуем следующий endpoint
+                    elif response.status == 404:
+                        logging.warning(f"⚠️ Endpoint {endpoint} not found (404), trying next...")
+                        continue  # Попробуем следующий endpoint
+                    else:
+                        logging.warning(f"⚠️ Error {response.status} from {endpoint}: {response_text}")
+                        continue  # Попробуем следующий endpoint
             
             # Если дошли сюда, значит ни один endpoint не сработал
             logging.error(f"❌ All Tribute API endpoints failed for user {user_id}")
