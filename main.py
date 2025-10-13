@@ -1015,26 +1015,28 @@ async def handle_foreign_payment(callback: types.CallbackQuery, user_language: s
         return
     
     try:
-        # Параметры для Tribute API
-        amount = 10.00  # USD
+        # Параметры для Tribute API (используем донаты)
+        amount = 1000  # 10 USD в центах
         headers = {
             "Api-Key": TRIBUTE_API_KEY, 
             "Content-Type": "application/json",
             "User-Agent": "SORA2Bot/1.0"
         }
         payload = {
+            "donation_name": "SORA 2 Bot Tariff - Foreign Card",
             "amount": amount,
-            "currency": "USD",
-            "description": "SORA 2 Bot Tariff Payment - Foreign Card",
-            "metadata": {"user_id": str(user_id), "tariff": "foreign"}
+            "currency": "usd",
+            "message": f"Payment for user {user_id}",
+            "period": "once",
+            "anonymously": False
         }
         
-        logging.info(f"🌍 Creating Tribute payment: {payload}")
+        logging.info(f"🌍 Creating Tribute donation: {payload}")
         
-        # Создаем платеж через Tribute API
+        # Создаем донат через Tribute API
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=30)) as session:
             async with session.post(
-                "https://tribute.tg/api/v1/payments", 
+                "https://tribute.tg/api/v1/donations", 
                 json=payload, 
                 headers=headers
             ) as response:
@@ -1046,20 +1048,20 @@ async def handle_foreign_payment(callback: types.CallbackQuery, user_language: s
                 if response.status == 200:
                     try:
                         data = await response.json()
-                        payment_url = data.get("confirmation_url")
+                        web_app_link = data.get("web_app_link")
                         
-                        if payment_url:
-                            payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n💰 Сумма: {amount} USD\n\nПосле успешной оплаты тариф активируется автоматически."
+                        if web_app_link:
+                            payment_text = f"🌍 <b>Оплата иностранной картой</b>\n\n💰 Сумма: $10.00 USD\n\nПосле успешной оплаты тариф активируется автоматически."
                             
                             # Создаем inline кнопку для оплаты
                             pay_button = InlineKeyboardMarkup(inline_keyboard=[
-                                [InlineKeyboardButton(text="💳 ОПЛАТИТЬ", url=payment_url)]
+                                [InlineKeyboardButton(text="💳 ОПЛАТИТЬ", url=web_app_link)]
                             ])
                             
                             await callback.message.edit_text(payment_text, reply_markup=pay_button)
                             logging.info(f"✅ Foreign payment created successfully for user {user_id}")
                         else:
-                            logging.error(f"❌ No payment URL in response: {data}")
+                            logging.error(f"❌ No web_app_link in response: {data}")
                             await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
                     except Exception as json_error:
                         logging.error(f"❌ JSON parsing error: {json_error}")
@@ -1152,23 +1154,46 @@ async def tribute_webhook(request):
     """Обработчик webhook от Tribute"""
     try:
         data = await request.json()
+        logging.info(f"🎬 Tribute webhook received: {data}")
         
-        # Проверяем тип события
-        if data.get('event') == 'payment.succeeded':
-            # Получаем данные платежа
-            metadata = data.get('metadata', {})
-            user_id = int(metadata.get('user_id'))
-            amount = data.get('amount')
+        # Проверяем тип события согласно документации Tribute
+        event_name = data.get('name')
+        payload = data.get('payload', {})
+        
+        if event_name == 'new_donation':
+            # Новый донат - активируем тариф
+            telegram_user_id = payload.get('telegram_user_id')
+            amount = payload.get('amount', 0)
             
-            # Обновляем тариф пользователя (даем 10 видео за $10)
-            await update_user_tariff(user_id, "Foreign Card", 10, int(amount))
-            
-            # Отправляем уведомление пользователю
-            try:
-                success_text = f"✅ <b>Оплата иностранной картой прошла успешно!</b>\n\n🎬 Тариф: <b>Foreign Card</b>\n🎞 Видео: <b>10</b>\n💰 Сумма: <b>{amount} USD</b>\n\n🎉 Теперь вы можете создавать видео!"
-                await bot.send_message(user_id, success_text)
-            except Exception as e:
-                logging.error(f"❌ Error sending success message to user {user_id}: {e}")
+            if telegram_user_id:
+                # Активируем тариф (50 видео за $10)
+                videos_to_add = 50
+                await update_user_videos(telegram_user_id, videos_to_add)
+                
+                # Отправляем подтверждение пользователю
+                try:
+                    await bot.send_message(
+                        telegram_user_id,
+                        f"🎉 <b>Оплата прошла успешно!</b>\n\n✅ Тариф активирован\n🎬 Видео на балансе: {videos_to_add}\n\nСпасибо за покупку!"
+                    )
+                    logging.info(f"✅ Tribute payment processed for user {telegram_user_id}")
+                except Exception as e:
+                    logging.error(f"❌ Error sending success message to user {telegram_user_id}: {e}")
+        
+        elif event_name == 'recurrent_donation':
+            # Регулярный донат
+            telegram_user_id = payload.get('telegram_user_id')
+            if telegram_user_id:
+                videos_to_add = 50
+                await update_user_videos(telegram_user_id, videos_to_add)
+                
+                try:
+                    await bot.send_message(
+                        telegram_user_id,
+                        f"🔄 <b>Регулярный платеж обработан!</b>\n\n✅ Добавлено видео: {videos_to_add}\n\nСпасибо за поддержку!"
+                    )
+                except Exception as e:
+                    logging.error(f"❌ Error sending recurrent payment message to user {telegram_user_id}: {e}")
         
         return web.Response(text="OK")
         
