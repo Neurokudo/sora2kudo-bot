@@ -626,6 +626,18 @@ async def callback_handler(callback: types.CallbackQuery):
                 )
             )
     
+    # Обработка смены ориентации после создания видео
+    elif callback.data == "change_orientation":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        await callback.message.edit_text(
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language)
+        )
+        await callback.answer()
+        return
+    
     # Обработка покупки тарифов
     elif callback.data == "buy_trial":
         user = await get_user(user_id)
@@ -1288,7 +1300,7 @@ async def sora_callback(request):
                         await bot.send_video(
                             user_id, 
                             video=video_urls[0],
-                            caption="🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2",
+                            caption="🎬 Видео создано через Sora 2",
                             parse_mode="HTML"
                         )
                         
@@ -1316,7 +1328,7 @@ async def sora_callback(request):
                                             await bot.send_video(
                                                 user_id,
                                                 video=video_file,
-                                                caption="🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2",
+                                                caption="🎬 Видео создано через Sora 2",
                                                 parse_mode="HTML"
                                             )
                                         
@@ -1334,14 +1346,45 @@ async def sora_callback(request):
                             try:
                                 await bot.send_message(
                                     user_id, 
-                                    f"🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>",
+                                    f"🎬 Видео создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>",
                                     parse_mode="HTML"
                                 )
                                 logging.info(f"✅ Fallback link sent to user {user_id}")
                             except Exception as fallback_error:
                                 logging.error(f"❌ Fallback error: {fallback_error}")
                     
-                    # Меню не отправляем - пользователь сам выберет действие
+                    # Отправляем инструкцию и кнопку смены ориентации
+                    try:
+                        # Получаем данные пользователя для показа остатка видео
+                        user = await get_user(user_id)
+                        user_language = user.get('language', 'en') if user else 'en'
+                        videos_left = user.get('videos_left', 0) if user else 0
+                        
+                        # Сообщение с инструкцией
+                        instruction_text = (
+                            f"🎉 <b>Ваше видео готово!</b>\n\n"
+                            f"🎬 Видео успешно создано через Sora 2\n"
+                            f"📹 <b>Видео отправлено в чат выше</b>\n"
+                            f"🎞 Осталось видео: <b>{videos_left}</b>\n\n"
+                            f"💡 <b>Для того, чтобы создать новое видео, напиши новый запрос ✍️</b>"
+                        )
+                        
+                        # Кнопка смены ориентации
+                        orientation_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                            [InlineKeyboardButton(text="📐 Сменить ориентацию", callback_data="change_orientation")]
+                        ])
+                        
+                        await bot.send_message(
+                            user_id,
+                            instruction_text,
+                            reply_markup=orientation_keyboard,
+                            parse_mode="HTML"
+                        )
+                        
+                        logging.info(f"✅ Instruction message sent to user {user_id}")
+                        
+                    except Exception as e:
+                        logging.error(f"❌ Error sending instruction message to user {user_id}: {e}")
                 else:
                     logging.error(f"❌ No video URLs in result: {result_json}")
             else:
