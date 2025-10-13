@@ -18,17 +18,7 @@ from yookassa import Configuration, Payment
 from translations import get_text, is_rtl_language
 from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
-# from tribute_subscription import create_subscription, get_tariff_info
-
-# ВРЕМЕННАЯ заглушка для get_tariff_info
-def get_tariff_info(tariff):
-    """Заглушка для get_tariff_info пока Tribute API не работает"""
-    tariff_data = {
-        "trial": {"name": "🌱 Пробный", "price_usd": 3.90, "videos": 3},
-        "basic": {"name": "✨ Базовый", "price_usd": 9.90, "videos": 10},
-        "maximum": {"name": "💎 Максимум", "price_usd": 21.90, "videos": 30}
-    }
-    return tariff_data.get(tariff)
+from tribute_subscription import create_subscription, get_tariff_info
 
 # Импорт Sora client
 from sora_client import create_sora_task, extract_user_from_param
@@ -664,9 +654,8 @@ async def callback_handler(callback: types.CallbackQuery):
             await callback.answer()
             return
         
-        # ВРЕМЕННО: Tribute API не работает, используем заглушку
-        # web_app_link = await create_subscription(user_id, tariff)
-        web_app_link = None  # Заглушка
+        # Создаем подписку через Tribute
+        web_app_link = await create_subscription(user_id, tariff)
         
         if web_app_link:
             subscription_text = (
@@ -1213,98 +1202,62 @@ async def tribute_subscription_webhook(request):
     """Webhook от Tribute для ежемесячных подписок"""
     try:
         data = await request.json()
-        logging.info(f"🎬 Tribute subscription webhook received: {data}")
-        
-        # Проверяем тип события согласно документации Tribute
-        event_name = data.get('name')
-        payload = data.get('payload', {})
-        
-        if event_name == 'newDonation':
-            # Новый донат - активируем тариф
-            telegram_user_id = payload.get('telegram_user_id')
-            metadata = payload.get('metadata', {})
-            
-            # Проверяем, что это подписка (а не обычный донат)
-            if metadata.get('type') == 'subscription':
-                tariff = metadata.get('tariff')
-                videos_count = int(metadata.get('videos_count', 0))
-                price_usd = metadata.get('price_usd', '0')
-                
-                if telegram_user_id and tariff and videos_count:
-                    # Добавляем видео пользователю
-                    await update_user_videos(telegram_user_id, videos_count)
-                    
-                    # Отправляем подтверждение пользователю
-                    try:
-                        tariff_names = {
-                            "trial": "🌱 Trial",
-                            "basic": "✨ Basic", 
-                            "maximum": "💎 Premium"
-                        }
-                        tariff_name = tariff_names.get(tariff, tariff.title())
-                        
-                        await bot.send_message(
-                            telegram_user_id,
-                            f"🎉 <b>Subscription activated!</b>\n\n"
-                            f"✅ Plan: <b>{tariff_name}</b>\n"
-                            f"🎬 Videos added: <b>{videos_count}</b>\n"
-                            f"💰 Price: <b>${price_usd}/month</b>\n\n"
-                            f"🔄 Subscription will auto-renew monthly"
-                        )
-                        logging.info(f"✅ Tribute subscription activated for user {telegram_user_id}, tariff {tariff}")
-                    except Exception as e:
-                        logging.error(f"❌ Error sending subscription success message to user {telegram_user_id}: {e}")
-        
-        elif event_name == 'recurrentDonation':
-            # Регулярный донат - добавляем видео каждый месяц
-            telegram_user_id = payload.get('telegram_user_id')
-            metadata = payload.get('metadata', {})
-            
-            # Проверяем, что это подписка (а не обычный донат)
-            if metadata.get('type') == 'subscription':
-                videos_count = int(metadata.get('videos_count', 0))
-                price_usd = metadata.get('price_usd', '0')
-                
-                if telegram_user_id and videos_count:
-                    # Добавляем видео пользователю
-                    await update_user_videos(telegram_user_id, videos_count)
-                    
-                    # Отправляем подтверждение пользователю
-                    try:
-                        await bot.send_message(
-                            telegram_user_id,
-                            f"🔄 <b>Subscription renewed!</b>\n\n"
-                            f"🎬 Videos added: <b>{videos_count}</b>\n"
-                            f"💰 Price: <b>${price_usd}/month</b>\n\n"
-                            f"✅ Your subscription continues"
-                        )
-                        logging.info(f"✅ Tribute subscription renewed for user {telegram_user_id}")
-                    except Exception as e:
-                        logging.error(f"❌ Error sending subscription renewal message to user {telegram_user_id}: {e}")
-        
-        elif event_name == 'cancelledDonation':
-            # Отмена подписки
-            telegram_user_id = payload.get('telegram_user_id')
-            metadata = payload.get('metadata', {})
-            
-            # Проверяем, что это подписка (а не обычный донат)
-            if metadata.get('type') == 'subscription':
-                if telegram_user_id:
-                    try:
-                        await bot.send_message(
-                            telegram_user_id,
-                            "❌ <b>Subscription cancelled</b>\n\n"
-                            "Your subscription has been cancelled. "
-                            "Remaining videos on your balance will be available until the end of the current period."
-                        )
-                        logging.info(f"✅ Tribute subscription cancelled for user {telegram_user_id}")
-                    except Exception as e:
-                        logging.error(f"❌ Error sending subscription cancellation message to user {telegram_user_id}: {e}")
-        
+        signature = request.headers.get("trbt-signature")
+        logging.info(f"🎬 Tribute webhook received: {data}")
+        logging.info(f"🧾 Tribute signature: {signature}")
+
+        event_name = data.get("name")
+        payload = data.get("payload", {})
+        metadata = payload.get("metadata", {})
+
+        logging.info(f"🎯 Event: {event_name}, payload: {payload}")
+
+        # Новый формат Tribute событий
+        if event_name == "new_subscription" or event_name == "new_digital_product":
+            telegram_user_id = payload.get("telegram_user_id")
+            if not telegram_user_id:
+                logging.error("❌ Missing telegram_user_id in payload")
+                return web.Response(text="Missing user", status=400)
+
+            tariff = metadata.get("tariff", "unknown")
+            videos_count = int(metadata.get("videos_count", 0))
+            price_usd = metadata.get("price_usd", "0")
+
+            # Обновляем пользователя
+            if videos_count > 0:
+                await update_user_videos(telegram_user_id, videos_count)
+                try:
+                    await bot.send_message(
+                        telegram_user_id,
+                        f"🎉 <b>Subscription activated!</b>\n\n"
+                        f"✅ Plan: <b>{tariff}</b>\n"
+                        f"🎬 Videos added: <b>{videos_count}</b>\n"
+                        f"💰 Price: <b>${price_usd}/month</b>\n\n"
+                        f"🔄 Subscription will auto-renew monthly"
+                    )
+                    logging.info(f"✅ Tribute subscription activated for user {telegram_user_id}")
+                except Exception as e:
+                    logging.error(f"❌ Error sending confirmation: {e}")
+
+        elif event_name == "cancelled_subscription":
+            telegram_user_id = payload.get("telegram_user_id")
+            if telegram_user_id:
+                try:
+                    await bot.send_message(
+                        telegram_user_id,
+                        "❌ <b>Subscription cancelled</b>\n\n"
+                        "Your subscription has been cancelled, but remaining videos will stay until the end of this month."
+                    )
+                    logging.info(f"✅ Subscription cancelled for user {telegram_user_id}")
+                except Exception as e:
+                    logging.error(f"❌ Error sending cancellation: {e}")
+
         return web.Response(text="OK")
-        
+
     except Exception as e:
         logging.error(f"❌ Error in Tribute subscription webhook: {e}")
+        import traceback
+        logging.error(traceback.format_exc())
         return web.Response(text="Error", status=500)
 
 async def sora_callback(request):
