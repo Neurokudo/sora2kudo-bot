@@ -654,7 +654,9 @@ async def callback_handler(callback: types.CallbackQuery):
     elif callback.data == "buy_foreign":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
-        await handle_foreign_payment(callback, user_language)
+        await send_foreign_tariffs(callback.message, user_language)
+        await callback.answer()
+        return
     
     # Обработка выбора подписок Tribute
     elif callback.data.startswith("sub_"):
