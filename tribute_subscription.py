@@ -34,10 +34,12 @@ async def create_subscription(user_id: int, tariff: str):
     
     # Современный формат payload для Tribute API
     payload = {
-        "subscription_name": f"{tariff_data['name']} - SORA 2 Bot",
+        "donation_name": f"{tariff_data['name']} - SORA 2 Bot Subscription",
         "amount": tariff_data["price_usd"] * 100,  # Tribute принимает сумму в центах
         "currency": "usd",
         "period": "monthly",
+        "message": f"Monthly subscription {tariff_data['name']} - {tariff_data['videos']} videos per month",
+        "anonymously": False,
         "metadata": {
             "telegram_user_id": user_id,
             "tariff": tariff,
@@ -48,7 +50,7 @@ async def create_subscription(user_id: int, tariff: str):
     }
     
     # Единственный рабочий endpoint
-    endpoint = f"{TRIBUTE_API_URL}/subscriptions"
+    endpoint = f"{TRIBUTE_API_URL}/donations"
     
     logging.info(f"🌍 Creating Tribute subscription for user {user_id}, tariff {tariff}")
     logging.info(f"🌍 Endpoint: {endpoint}")
