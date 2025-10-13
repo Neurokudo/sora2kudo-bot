@@ -814,6 +814,8 @@ async def handle_text(message: types.Message):
         await cmd_help(message, user_language)
     elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
         await handle_language_selection(message)
+    elif text in [get_text(lang, "btn_buy_foreign") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await send_foreign_tariffs(message, user_language)
     elif text in [get_text(lang, "btn_buy_tariff") for lang in ["ru", "en", "es", "ar", "hi"]]:
         await handle_buy_tariff(message, user_language)
     else:
@@ -844,6 +846,28 @@ async def handle_examples(message: types.Message, user_language: str):
     markup = build_categories_keyboard(0)
     text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
     await message.answer(text, reply_markup=markup)
+
+async def send_foreign_tariffs(message: types.Message, user_language: str):
+    """Показ тарифов Tribute для иностранных пользователей"""
+    keyboard = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🌱 Trial — €5", url="https://web.tribute.tg/p/lEw")],
+        [InlineKeyboardButton(text="✨ Basic — €12", url="https://web.tribute.tg/p/lEu")],
+        [InlineKeyboardButton(text="💎 Premium — €25", url="https://web.tribute.tg/p/lEv")]
+    ])
+    
+    text = (
+        f"{get_text(user_language, 'foreign_card_title')}\n\n"
+        f"🌱 <b>Trial</b> — 3 videos (€5)\n"
+        f"✨ <b>Basic</b> — 10 videos (€12)\n"
+        f"💎 <b>Premium</b> — 30 videos (€25)\n\n"
+        f"{get_text(user_language, 'foreign_card_description')}"
+    )
+    
+    await message.answer(
+        text,
+        reply_markup=keyboard,
+        parse_mode="HTML"
+    )
 
 async def handle_profile(message: types.Message, user_language: str):
     """Обработка кнопки 'Кабинет'"""
@@ -1237,32 +1261,36 @@ async def tribute_subscription_webhook(request):
 
         logging.info(f"🎯 Event: {event_name}, payload: {payload}")
 
+        # Соответствие товаров Tribute и количества видео
+        product_map = {
+            "lEw": 3,   # Trial
+            "lEu": 10,  # Basic
+            "lEv": 30   # Premium
+        }
+
         # Новый формат Tribute событий
         if event_name == "new_subscription" or event_name == "new_digital_product":
             telegram_user_id = payload.get("telegram_user_id")
+            product_id = payload.get("product_id")
+            
             if not telegram_user_id:
                 logging.error("❌ Missing telegram_user_id in payload")
                 return web.Response(text="Missing user", status=400)
 
-            tariff = metadata.get("tariff", "unknown")
-            videos_count = int(metadata.get("videos_count", 0))
-            price_usd = metadata.get("price_usd", "0")
-
-            # Обновляем пользователя
-            if videos_count > 0:
+            videos_count = product_map.get(product_id)
+            if videos_count:
+                # Обновляем пользователя
                 await update_user_videos(telegram_user_id, videos_count)
                 try:
                     await bot.send_message(
                         telegram_user_id,
-                        f"🎉 <b>Subscription activated!</b>\n\n"
-                        f"✅ Plan: <b>{tariff}</b>\n"
-                        f"🎬 Videos added: <b>{videos_count}</b>\n"
-                        f"💰 Price: <b>${price_usd}/month</b>\n\n"
-                        f"🔄 Subscription will auto-renew monthly"
+                        f"✅ <b>Your plan is activated!</b> {videos_count} videos added to your balance 🎬"
                     )
                     logging.info(f"✅ Tribute subscription activated for user {telegram_user_id}")
                 except Exception as e:
                     logging.error(f"❌ Error sending confirmation: {e}")
+            else:
+                logging.warning(f"⚠️ Unknown product_id: {product_id}")
 
         elif event_name == "cancelled_subscription":
             telegram_user_id = payload.get("telegram_user_id")
