@@ -828,6 +828,19 @@ async def handle_text(message: types.Message):
 
 async def handle_examples(message: types.Message, user_language: str):
     """Обработка кнопки 'Примеры' - показывает категории"""
+    user_id = message.from_user.id
+    user = await get_user(user_id)
+    
+    # Проверяем, есть ли у пользователя оплаченная подписка
+    if not user or user.get('plan_name') == 'Без тарифа' or user.get('videos_left', 0) <= 0:
+        # Показываем сообщение о необходимости подписки
+        await message.answer(
+            get_text(user_language, "examples_subscription_required"),
+            reply_markup=tariff_selection(user_language)
+        )
+        return
+    
+    # Если подписка есть, показываем примеры
     markup = build_categories_keyboard(0)
     text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
     await message.answer(text, reply_markup=markup)
