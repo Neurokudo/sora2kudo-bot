@@ -1447,6 +1447,7 @@ def create_app():
     app.router.add_post("/webhook/yookassa", yookassa_webhook)  # Дополнительный маршрут для YooKassa
     app.router.add_post("/tribute_webhook", tribute_webhook)  # Webhook для донатов Tribute
     app.router.add_post("/tribute_subscription_webhook", tribute_subscription_webhook)  # Webhook для подписок Tribute
+    app.router.add_post("/webhook/tribute", tribute_subscription_webhook)  # Альтернативный маршрут для Tribute
     app.router.add_post("/sora_callback", sora_callback)  # Callback от Kie.AI Sora-2
     app.router.add_get("/health", health)
     
