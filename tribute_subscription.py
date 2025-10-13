@@ -49,24 +49,47 @@ async def create_subscription(user_id: int, tariff: str):
         }
     }
     
-    # Единственный рабочий endpoint
-    endpoint = f"{TRIBUTE_API_URL}/donations"
+    # Попробуем разные варианты endpoints
+    endpoints_to_try = [
+        f"{TRIBUTE_API_URL}/donations",
+        f"{TRIBUTE_API_URL}/subscriptions", 
+        f"{TRIBUTE_API_URL}/api/v1/donations",
+        f"{TRIBUTE_API_URL}/api/v1/subscriptions",
+        f"https://tribute.tg/api/v1/donations",
+        f"https://tribute.tg/api/v1/subscriptions",
+        f"https://api.tribute.tg/v1/donations",
+        f"https://api.tribute.tg/v1/subscriptions"
+    ]
     
     logging.info(f"🌍 Creating Tribute subscription for user {user_id}, tariff {tariff}")
-    logging.info(f"🌍 Endpoint: {endpoint}")
     logging.info(f"🌍 Payload: {payload}")
     
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(endpoint, headers=headers, json=payload) as response:
-                response_text = await response.text()
-                logging.info(f"🌍 Tribute response: {response.status} - {response_text}")
-                if response.status == 200:
-                    data = await response.json()
-                    return data.get("web_app_link")
-                else:
-                    logging.error(f"❌ Tribute error {response.status}: {response_text}")
-                    return None
+            for endpoint in endpoints_to_try:
+                logging.info(f"🌍 Trying endpoint: {endpoint}")
+                async with session.post(endpoint, headers=headers, json=payload) as response:
+                    response_text = await response.text()
+                    logging.info(f"🌍 Tribute response: {response.status} - {response_text}")
+                    if response.status == 200:
+                        data = await response.json()
+                        web_app_link = data.get("web_app_link")
+                        if web_app_link:
+                            logging.info(f"✅ Tribute subscription created successfully via {endpoint}")
+                            return web_app_link
+                        else:
+                            logging.warning(f"⚠️ No web_app_link in response from {endpoint}: {data}")
+                            continue
+                    elif response.status == 404:
+                        logging.warning(f"⚠️ Endpoint {endpoint} not found (404), trying next...")
+                        continue
+                    else:
+                        logging.warning(f"⚠️ Error {response.status} from {endpoint}: {response_text}")
+                        continue
+            
+            # Если дошли сюда, значит ни один endpoint не сработал
+            logging.error(f"❌ All Tribute API endpoints failed for user {user_id}")
+            return None
                     
     except Exception as e:
         logging.error(f"❌ Unexpected error in subscription creation: {e}")
