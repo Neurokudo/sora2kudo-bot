@@ -399,13 +399,13 @@ async def cmd_start(message: types.Message):
     # Получаем язык пользователя
     user_language = user.get('language', 'en') if user else 'en'
     
-    # Если язык не установлен, показываем выбор языка на двух языках
-    if not user or not user.get('language'):
-        await message.answer(
-            "🌍 <b>Выберите язык / Choose your language:</b>",
-            reply_markup=language_selection()
-        )
-        return
+    # ВРЕМЕННО: Принудительно показываем выбор языка для всех пользователей
+    # TODO: Убрать это после тестирования
+    await message.answer(
+        "🌍 <b>Выберите язык / Choose your language:</b>",
+        reply_markup=language_selection()
+    )
+    return
     
     # Безопасное извлечение имени пользователя
     safe_first_name = getattr(message.from_user, 'first_name', None) or "friend"
