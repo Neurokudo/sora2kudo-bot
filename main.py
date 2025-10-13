@@ -651,16 +651,16 @@ async def callback_handler(callback: types.CallbackQuery):
         
         if web_app_link:
             subscription_text = (
-                f"🌍 <b>Подписка на тариф {tariff_info['name']}</b>\n\n"
-                f"💰 Стоимость: <b>{tariff_info['price_rub']} ₽/мес</b>\n"
-                f"🎬 Видео: <b>{tariff_info['videos']} в месяц</b>\n"
-                f"🔄 Автоматическое продление\n\n"
-                f"💳 Нажмите кнопку ниже для оплаты:"
+                f"🌍 <b>Subscription plan: {tariff_info['name']}</b>\n\n"
+                f"💰 <b>${tariff_info['price_usd']}</b> per month\n"
+                f"🎬 {tariff_info['videos']} videos monthly\n"
+                f"🔄 Auto-renewal\n\n"
+                f"💳 Click the button below to proceed to payment:"
             )
             
             pay_button = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="💳 ОПЛАТИТЬ ПОДПИСКУ", url=web_app_link)],
-                [InlineKeyboardButton(text="🔙 Назад к подпискам", callback_data="foreign_payment")]
+                [InlineKeyboardButton(text="💳 PROCEED TO PAYMENT", url=web_app_link)],
+                [InlineKeyboardButton(text="🔙 Back to subscriptions", callback_data="foreign_payment")]
             ])
             
             await callback.message.edit_text(
@@ -1053,13 +1053,13 @@ async def handle_foreign_payment(callback: types.CallbackQuery, user_language: s
         await callback.answer()
         return
     
-    # Показываем выбор подписок
-    subscription_text = "🌍 <b>Подписки через иностранную карту</b>\n\n💳 Выберите тариф для ежемесячной подписки:"
+    # Показываем выбор подписок в долларах
+    subscription_text = "🌍 <b>Foreign Card Subscriptions</b>\n\n💳 Choose your monthly subscription plan:"
     
     subscription_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🌱 Пробный - ₽390/мес (3 видео)", callback_data="sub_trial")],
-        [InlineKeyboardButton(text="✨ Базовый - ₽990/мес (10 видео)", callback_data="sub_basic")],
-        [InlineKeyboardButton(text="💎 Максимум - ₽2,190/мес (30 видео)", callback_data="sub_maximum")],
+        [InlineKeyboardButton(text="🌱 Trial — $5 / month", callback_data="sub_trial")],
+        [InlineKeyboardButton(text="✨ Basic — $12 / month", callback_data="sub_basic")],
+        [InlineKeyboardButton(text="💎 Premium — $25 / month", callback_data="sub_maximum")],
         [InlineKeyboardButton(text="🔙 Назад к тарифам", callback_data="buy_tariff")]
     ])
     
@@ -1206,7 +1206,7 @@ async def tribute_subscription_webhook(request):
             metadata = payload.get('metadata', {})
             tariff = metadata.get('tariff')
             videos_count = int(metadata.get('videos_count', 0))
-            price_rub = metadata.get('price_rub', '0')
+            price_usd = metadata.get('price_usd', '0')
             
             if telegram_user_id and tariff and videos_count:
                 # Добавляем видео пользователю
@@ -1215,19 +1215,19 @@ async def tribute_subscription_webhook(request):
                 # Отправляем подтверждение пользователю
                 try:
                     tariff_names = {
-                        "trial": "🌱 Пробный",
-                        "basic": "✨ Базовый", 
-                        "maximum": "💎 Максимум"
+                        "trial": "🌱 Trial",
+                        "basic": "✨ Basic", 
+                        "maximum": "💎 Premium"
                     }
                     tariff_name = tariff_names.get(tariff, tariff.title())
                     
                     await bot.send_message(
                         telegram_user_id,
-                        f"🎉 <b>Подписка активирована!</b>\n\n"
-                        f"✅ Тариф: <b>{tariff_name}</b>\n"
-                        f"🎬 Добавлено видео: <b>{videos_count}</b>\n"
-                        f"💰 Стоимость: <b>{price_rub} ₽/мес</b>\n\n"
-                        f"🔄 Подписка будет продлеваться автоматически каждый месяц"
+                        f"🎉 <b>Subscription activated!</b>\n\n"
+                        f"✅ Plan: <b>{tariff_name}</b>\n"
+                        f"🎬 Videos added: <b>{videos_count}</b>\n"
+                        f"💰 Price: <b>${price_usd}/month</b>\n\n"
+                        f"🔄 Subscription will auto-renew monthly"
                     )
                     logging.info(f"✅ Tribute subscription activated for user {telegram_user_id}, tariff {tariff}")
                 except Exception as e:
@@ -1240,9 +1240,9 @@ async def tribute_subscription_webhook(request):
                 try:
                     await bot.send_message(
                         telegram_user_id,
-                        "❌ <b>Подписка отменена</b>\n\n"
-                        "Ваша подписка была отменена. "
-                        "Оставшиеся видео на балансе остаются доступными до окончания текущего периода."
+                        "❌ <b>Subscription cancelled</b>\n\n"
+                        "Your subscription has been cancelled. "
+                        "Remaining videos on your balance will be available until the end of the current period."
                     )
                     logging.info(f"✅ Tribute subscription cancelled for user {telegram_user_id}")
                 except Exception as e:

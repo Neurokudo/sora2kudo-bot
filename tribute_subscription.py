@@ -7,11 +7,11 @@ TRIBUTE_API_KEY = os.getenv("TRIBUTE_API_KEY")
 TRIBUTE_API_URL = os.getenv("TRIBUTE_API_URL", "https://tribute.tg/api/v1")
 PUBLIC_URL = os.getenv("PUBLIC_URL", "https://sora2kudo-bot-production.up.railway.app")
 
-# Тарифная сетка
+# Тарифная сетка в долларах USD
 TARIFFS = {
-    "trial": {"name": "🌱 Пробный", "price_rub": 390, "videos": 3, "price_usd": 4},
-    "basic": {"name": "✨ Базовый", "price_rub": 990, "videos": 10, "price_usd": 10},
-    "maximum": {"name": "💎 Максимум", "price_rub": 2190, "videos": 30, "price_usd": 22}
+    "trial": {"name": "🌱 Trial", "price_usd": 5, "videos": 3, "price_rub": 475},
+    "basic": {"name": "✨ Basic", "price_usd": 12, "videos": 10, "price_rub": 1140},
+    "maximum": {"name": "💎 Premium", "price_usd": 25, "videos": 30, "price_rub": 2375}
 }
 
 async def create_subscription(user_id: int, tariff: str):
@@ -35,15 +35,15 @@ async def create_subscription(user_id: int, tariff: str):
     # Создаем подписку через Tribute API
     payload = {
         "subscription_name": f"{tariff_data['name']} - SORA 2 Bot",
-        "amount": tariff_data["price_usd"] * 100,  # в центах
+        "amount": tariff_data["price_usd"] * 100,  # в центах USD
         "currency": "usd",
         "period": "monthly",
-        "description": f"Ежемесячная подписка на тариф {tariff_data['name']} - {tariff_data['videos']} видео в месяц",
+        "description": f"Monthly subscription {tariff_data['name']} - {tariff_data['videos']} videos per month",
         "metadata": {
             "user_id": str(user_id),
             "tariff": tariff,
             "videos_count": str(tariff_data['videos']),
-            "price_rub": str(tariff_data['price_rub'])
+            "price_usd": str(tariff_data['price_usd'])
         }
     }
     
