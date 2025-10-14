@@ -1273,13 +1273,11 @@ async def tribute_subscription_webhook(request):
         logging.info(f"🎯 Event: {event_name}, payload: {payload}")
 
         # Соответствие товаров Tribute и количества видео
+        # Настоящие product_id из ссылок Tribute: https://web.tribute.tg/p/lEw
         product_map = {
-            "lEw": 3,   # Trial (старый ID)
-            "lEu": 10,  # Basic (старый ID)
-            "lEv": 30,  # Premium (старый ID)
-            "83236": 3, # Trial (новый ID из Tribute)
-            "83237": 10, # Basic (предполагаемый ID)
-            "83238": 30, # Premium (предполагаемый ID)
+            "lEw": 3,   # Trial ($5) - https://web.tribute.tg/p/lEw
+            "lEu": 10,  # Basic ($12) - https://web.tribute.tg/p/lEu  
+            "lEv": 30   # Premium ($25) - https://web.tribute.tg/p/lEv
         }
 
         # Обрабатываем события от Tribute
