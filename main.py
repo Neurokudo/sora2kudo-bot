@@ -244,6 +244,36 @@ async def update_user_videos(user_id: int, videos_left: int):
         logging.error(f"❌ Error updating user videos {user_id}: {e}")
         return False
 
+async def add_user_videos(user_id: int, videos_to_add: int):
+    """Добавление видео к существующему балансу"""
+    if not db_pool:
+        logging.warning("⚠️ Database not available, skipping video addition")
+        return False
+        
+    try:
+        async with db_pool.acquire() as conn:
+            # Получаем текущий баланс
+            current_videos = await conn.fetchval('''
+                SELECT videos_left FROM users WHERE user_id = $1
+            ''', user_id)
+            
+            if current_videos is None:
+                logging.error(f"❌ User {user_id} not found in database")
+                return False
+            
+            # Добавляем новые видео
+            new_balance = current_videos + videos_to_add
+            
+            await conn.execute('''
+                UPDATE users SET videos_left = $2 WHERE user_id = $1
+            ''', user_id, new_balance)
+            
+        logging.info(f"✅ Added {videos_to_add} videos to user {user_id}. Balance: {current_videos} → {new_balance}")
+        return True
+    except Exception as e:
+        logging.error(f"❌ Error adding videos to user {user_id}: {e}")
+        return False
+
 async def update_user_language(user_id: int, language: str):
     """Обновление языка пользователя"""
     if not db_pool:
@@ -1322,16 +1352,19 @@ async def tribute_subscription_webhook(request):
                     videos_count = 30
             
             if videos_count:
-                # Обновляем пользователя
-                await update_user_videos(telegram_user_id, videos_count)
-                try:
-                    await bot.send_message(
-                        telegram_user_id,
-                        f"✅ <b>Your plan is activated!</b> {videos_count} videos added to your balance 🎬"
-                    )
-                    logging.info(f"✅ Tribute digital product activated for user {telegram_user_id} - {videos_count} videos")
-                except Exception as e:
-                    logging.error(f"❌ Error sending confirmation: {e}")
+                # Добавляем видео к балансу пользователя
+                success = await add_user_videos(telegram_user_id, videos_count)
+                if success:
+                    try:
+                        await bot.send_message(
+                            telegram_user_id,
+                            f"✅ <b>Your plan is activated!</b> {videos_count} videos added to your balance 🎬"
+                        )
+                        logging.info(f"✅ Tribute digital product activated for user {telegram_user_id} - {videos_count} videos")
+                    except Exception as e:
+                        logging.error(f"❌ Error sending confirmation: {e}")
+                else:
+                    logging.error(f"❌ Failed to add videos to user {telegram_user_id}")
             else:
                 # Если всё ещё неизвестно — логируем все параметры
                 logging.warning(f"⚠️ Unknown product_id: {product_id}, name: '{product_name}', amount: {amount}")
