@@ -1244,6 +1244,12 @@ async def tribute_webhook(request):
 async def tribute_subscription_webhook(request):
     """Webhook от Tribute для ежемесячных подписок"""
     try:
+        # Проверяем content-type
+        if request.content_type != "application/json":
+            raw = await request.text()
+            logging.warning(f"⚠️ Non-JSON Tribute webhook: {raw}")
+            return web.Response(text="Expected JSON", status=400)
+        
         # Логируем все заголовки для диагностики
         logging.info(f"🔍 Tribute webhook headers: {dict(request.headers)}")
         
@@ -1255,6 +1261,10 @@ async def tribute_subscription_webhook(request):
         signature = request.headers.get("trbt-signature")
         logging.info(f"🎬 Tribute webhook received: {data}")
         logging.info(f"🧾 Tribute signature: {signature}")
+        
+        # Детальное логирование webhook-пакета
+        import json
+        logging.info("📩 Tribute webhook received (raw): %s", json.dumps(data, indent=2, ensure_ascii=False))
 
         event_name = data.get("name")
         payload = data.get("payload", {})
@@ -1268,7 +1278,8 @@ async def tribute_subscription_webhook(request):
             "lEu": 10,  # Basic (старый ID)
             "lEv": 30,  # Premium (старый ID)
             "83236": 3, # Trial (новый ID из Tribute)
-            # Добавьте сюда другие ID товаров по мере их обнаружения
+            "83237": 10, # Basic (предполагаемый ID)
+            "83238": 30, # Premium (предполагаемый ID)
         }
 
         # Обрабатываем события от Tribute
@@ -1283,7 +1294,21 @@ async def tribute_subscription_webhook(request):
                 logging.error("❌ Missing telegram_user_id in payload")
                 return web.Response(text="Missing user", status=400)
 
+            # Получаем название продукта для fallback-логики
+            product_name = payload.get("product_name", "").lower().strip()
+            
+            # Основная карта по product_id
             videos_count = product_map.get(product_id)
+            
+            # Fallback по названию продукта
+            if not videos_count and product_name:
+                if "trial" in product_name or "test" in product_name or "пробный" in product_name:
+                    videos_count = 3
+                elif "basic" in product_name or "базовый" in product_name:
+                    videos_count = 10
+                elif "premium" in product_name or "maximum" in product_name or "премиум" in product_name:
+                    videos_count = 30
+            
             if videos_count:
                 # Обновляем пользователя
                 await update_user_videos(telegram_user_id, videos_count)
@@ -1292,11 +1317,12 @@ async def tribute_subscription_webhook(request):
                         telegram_user_id,
                         f"✅ <b>Your plan is activated!</b> {videos_count} videos added to your balance 🎬"
                     )
-                    logging.info(f"✅ Tribute digital product activated for user {telegram_user_id}")
+                    logging.info(f"✅ Tribute digital product activated for user {telegram_user_id} - {videos_count} videos")
                 except Exception as e:
                     logging.error(f"❌ Error sending confirmation: {e}")
             else:
-                logging.warning(f"⚠️ Unknown product_id: {product_id}")
+                # Если всё ещё неизвестно — логируем оба параметра
+                logging.warning(f"⚠️ Unknown product_id: {product_id}, name: '{product_name}'")
                 logging.info(f"📋 Full payload for debugging: {payload}")
                 logging.info(f"🔍 Available product_ids in map: {list(product_map.keys())}")
                 
