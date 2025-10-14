@@ -6,7 +6,7 @@
 LANG = {
     "ru": {
         # Основные сообщения
-        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🔥 <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>\n\n💡 <b>Выбери действие:</b>",
+        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🔥 <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>",
         "choose_action": "💡 <b>Выбери действие:</b>",
         "choose_language": "🌍 <b>Выберите язык:</b>",
         "lang_selected": "✅ <b>Язык изменён на Русский.</b>",
@@ -23,6 +23,7 @@ LANG = {
         "choose_orientation": "📐 <b>Выбери ориентацию для будущих видео:</b>",
         "orientation_vertical": "📱 Вертикальное",
         "orientation_horizontal": "🖥 Горизонтальное",
+        "btn_main_menu": "🏠 Главное меню",
                 "orientation_selected": "✅ <b>Выбрана {orientation} ориентация</b>\n\n🎬 <b>Опиши сцену простыми словами:</b>\nКто в кадре, где происходит действие, что они делают, какая атмосфера и погода.\nДобавь, если нужно, детали: одежду, эмоции, свет, фон.\n\n📸 <b>Пример:</b>\n<code>Рыбаки поймали в лодку русалкоподобное чудище, рыбак в тельняшке и камуфляжных штанах, тянут ее сетью, чудище женоподобное, вырывается и шипит, съёмка на телефон, грудь покрыта плотной чешуей, склизкая, вся в тине.</code>",
         "orientation_vertical_name": "вертикальная",
         "orientation_horizontal_name": "горизонтальная",
@@ -90,7 +91,7 @@ LANG = {
     
     "en": {
         # Основные сообщения
-        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🔥 <b>Create amazing viral videos and delight your friends and followers!</b>\n\n💡 <b>Choose an action:</b>",
+        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🔥 <b>Create amazing viral videos and delight your friends and followers!</b>",
         "choose_action": "💡 <b>Choose an action:</b>",
         "choose_language": "🌍 <b>Choose your language:</b>",
         "lang_selected": "✅ <b>Language set to English.</b>",
@@ -107,6 +108,7 @@ LANG = {
         "choose_orientation": "📐 <b>Choose orientation for future videos:</b>",
         "orientation_vertical": "📱 Vertical",
         "orientation_horizontal": "🖥 Horizontal",
+        "btn_main_menu": "🏠 Main Menu",
                 "orientation_selected": "✅ <b>{orientation} orientation selected</b>\n\n🎬 <b>Describe the scene in simple words:</b>\nWho is in the frame, where the action takes place, what they are doing, atmosphere and weather.\nAdd details if needed: clothing, emotions, lighting, background.\n\n📸 <b>Example:</b>\n<code>Fishermen caught a mermaid-like creature in a boat, fisherman in striped shirt and camo pants pulls the net, creature is feminine, struggles and hisses, phone recording, chest covered with dense scales, slimy, covered in mud.</code>",
         "orientation_vertical_name": "vertical",
         "orientation_horizontal_name": "horizontal",
@@ -174,7 +176,7 @@ LANG = {
     
     "es": {
         # Основные сообщения
-        "welcome": "👋 ¡Hola, {name}! Este es <b>SORA 2 de Neurokudo</b>.\n\n🎬 <b>Tu plan:</b> {plan}\n🎞 <b>Videos restantes:</b> {videos_left}\n\nAquí puedes crear videos desde descripciones — solo escribe lo que quieres filmar.\n\n💡 <b>Elige una acción:</b>",
+        "welcome": "👋 ¡Hola, {name}! Este es <b>SORA 2 de Neurokudo</b>.\n\n🎬 <b>Tu plan:</b> {plan}\n🎞 <b>Videos restantes:</b> {videos_left}\n\nAquí puedes crear videos desde descripciones — solo escribe lo que quieres filmar.",
         "choose_action": "💡 <b>Elige una acción:</b>",
         "choose_language": "🌍 <b>Elige tu idioma:</b>",
         "lang_selected": "✅ <b>Idioma cambiado a Español.</b>",
@@ -191,6 +193,7 @@ LANG = {
         "choose_orientation": "📐 <b>Elige orientación para futuros videos:</b>",
         "orientation_vertical": "📱 Vertical",
         "orientation_horizontal": "🖥 Horizontal",
+        "btn_main_menu": "🏠 Menú Principal",
         "orientation_selected": "✅ <b>Orientación {orientation} seleccionada</b>\n\n¡Ahora presiona <b>🎬 Crear Video</b> y describe lo que quieres filmar!",
         "orientation_vertical_name": "vertical",
         "orientation_horizontal_name": "horizontal",
@@ -258,7 +261,7 @@ LANG = {
     
     "ar": {
         # Основные сообщения
-        "welcome": "👋 مرحباً {name}! هذا هو <b>SORA 2 من Neurokudo</b>.\n\n🎬 <b>خطتك:</b> {plan}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\nهنا يمكنك إنشاء فيديوهات من الوصف — فقط اكتب ما تريد تصويره.\n\n💡 <b>اختر إجراء:</b>",
+        "welcome": "👋 مرحباً {name}! هذا هو <b>SORA 2 من Neurokudo</b>.\n\n🎬 <b>خطتك:</b> {plan}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\nهنا يمكنك إنشاء فيديوهات من الوصف — فقط اكتب ما تريد تصويره.",
         "choose_action": "💡 <b>اختر إجراء:</b>",
         "choose_language": "🌍 <b>اختر لغتك:</b>",
         "lang_selected": "✅ <b>تم تغيير اللغة إلى العربية.</b>",
@@ -275,6 +278,7 @@ LANG = {
         "choose_orientation": "📐 <b>اختر اتجاه الفيديوهات المستقبلية:</b>",
         "orientation_vertical": "📱 عمودي",
         "orientation_horizontal": "🖥 أفقي",
+        "btn_main_menu": "🏠 القائمة الرئيسية",
         "orientation_selected": "✅ <b>تم اختيار الاتجاه {orientation}</b>\n\nالآن اضغط <b>🎬 إنشاء فيديو</b> وصف ما تريد تصويره!",
         "orientation_vertical_name": "عمودي",
         "orientation_horizontal_name": "أفقي",
@@ -342,7 +346,7 @@ LANG = {
     
     "hi": {
         # Основные сообщения
-        "welcome": "👋 नमस्ते {name}! यह है <b>SORA 2 by Neurokudo</b>।\n\n🎬 <b>आपकी योजना:</b> {plan}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\nयहाँ आप विवरण से वीडियो बना सकते हैं — बस लिखें कि आप क्या फिल्माना चाहते हैं।\n\n💡 <b>एक क्रिया चुनें:</b>",
+        "welcome": "👋 नमस्ते {name}! यह है <b>SORA 2 by Neurokudo</b>।\n\n🎬 <b>आपकी योजना:</b> {plan}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\nयहाँ आप विवरण से वीडियो बना सकते हैं — बस लिखें कि आप क्या फिल्माना चाहते हैं।",
         "choose_action": "💡 <b>एक क्रिया चुनें:</b>",
         "choose_language": "🌍 <b>अपनी भाषा चुनें:</b>",
         "lang_selected": "✅ <b>भाषा हिंदी में बदल दी गई है।</b>",
@@ -359,6 +363,7 @@ LANG = {
         "choose_orientation": "📐 <b>भविष्य के वीडियो के लिए दिशा चुनें:</b>",
         "orientation_vertical": "📱 खड़ा",
         "orientation_horizontal": "🖥 लेटा",
+        "btn_main_menu": "🏠 मुख्य मेनू",
         "orientation_selected": "✅ <b>{orientation} दिशा चुनी गई</b>\n\nअब <b>🎬 वीडियो बनाएं</b> दबाएं और बताएं कि आप क्या फिल्माना चाहते हैं!",
         "orientation_vertical_name": "खड़ी",
         "orientation_horizontal_name": "लेटी",

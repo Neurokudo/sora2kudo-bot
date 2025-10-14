@@ -435,53 +435,11 @@ async def cmd_start(message: types.Message):
         await create_user(user_id, username, first_name)
         user = await get_user(user_id)
     
-    # Получаем язык пользователя
-    user_language = user.get('language', 'en') if user else 'en'
-    
-    # Показываем выбор языка для всех пользователей при команде /start
+    # ВСЕГДА показываем выбор языка первым при команде /start
     await message.answer(
         "🌍 <b>Выберите язык / Choose your language:</b>",
         reply_markup=language_selection()
     )
-    return
-    
-    # Безопасное извлечение имени пользователя
-    safe_first_name = getattr(message.from_user, 'first_name', None) or "friend"
-    
-    # Проверяем, есть ли у пользователя тариф
-    user_plan = user.get('plan_name', 'Без тарифа')
-    user_videos_left = user.get('videos_left', 0)
-    
-    if user_plan == 'Без тарифа' and user_videos_left == 0:
-        # Показываем мотивирующее сообщение для покупки тарифа
-        await message.answer(
-            get_text(user_language, "no_tariff_message"),
-            reply_markup=tariff_selection(user_language)
-        )
-        # Также показываем основное меню
-        await message.answer(
-            reply_markup=main_menu(user_language)
-        )
-    else:
-        # Обычное приветствие для пользователей с тарифом
-        welcome_text = get_text(
-            user_language, 
-            "welcome",
-            name=safe_first_name,
-            plan=user_plan,
-            videos_left=user_videos_left
-        )
-        
-        await message.answer(
-            welcome_text,
-            reply_markup=main_menu(user_language)
-        )
-        
-        # Показываем кнопки ориентации
-        await message.answer(
-            get_text(user_language, "choose_orientation"),
-            reply_markup=orientation_menu(user_language)
-        )
 
 # === /help ===
 @dp.message(Command("help"))
@@ -601,14 +559,13 @@ async def callback_handler(callback: types.CallbackQuery):
         )
         
         await callback.message.answer(
-            welcome_text,
-            reply_markup=main_menu(user_language)
+            welcome_text
         )
         
-        # Показываем кнопки ориентации
+        # Показываем "Выбери действие:" с главным меню
         await callback.message.answer(
-            get_text(user_language, "choose_orientation"),
-            reply_markup=orientation_menu(user_language)
+            get_text(user_language, "choose_action"),
+            reply_markup=main_menu(user_language)
         )
         
         await callback.answer()
@@ -664,6 +621,22 @@ async def callback_handler(callback: types.CallbackQuery):
         await callback.message.edit_text(
             get_text(user_language, "choose_orientation"),
             reply_markup=orientation_menu(user_language)
+        )
+        await callback.answer()
+        return
+    
+    # Обработка кнопки "Главное меню" из меню ориентации
+    elif callback.data == "main_menu":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        # Удаляем сообщение с меню ориентации
+        await callback.message.delete()
+        
+        # Отправляем главное меню
+        await callback.message.answer(
+            get_text(user_language, "choose_action"),
+            reply_markup=main_menu(user_language)
         )
         await callback.answer()
         return
