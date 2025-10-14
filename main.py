@@ -1247,6 +1247,10 @@ async def tribute_subscription_webhook(request):
         # Логируем все заголовки для диагностики
         logging.info(f"🔍 Tribute webhook headers: {dict(request.headers)}")
         
+        # Логируем raw данные для диагностики
+        raw_data = await request.text()
+        logging.info(f"📝 Tribute webhook raw data: {raw_data}")
+        
         data = await request.json()
         signature = request.headers.get("trbt-signature")
         logging.info(f"🎬 Tribute webhook received: {data}")
@@ -1265,13 +1269,19 @@ async def tribute_subscription_webhook(request):
             "lEv": 30   # Premium
         }
 
-        # Новый формат Tribute событий
-        if event_name == "new_subscription" or event_name == "new_digital_product":
+        # Обрабатываем все возможные события от Tribute
+        if event_name in ["new_subscription", "new_digital_product", "payment_completed", "donation_received"]:
             telegram_user_id = payload.get("telegram_user_id")
             product_id = payload.get("product_id")
             
+            # Если нет telegram_user_id в payload, ищем в metadata
             if not telegram_user_id:
-                logging.error("❌ Missing telegram_user_id in payload")
+                telegram_user_id = metadata.get("telegram_user_id")
+            
+            logging.info(f"🔍 Looking for user_id: {telegram_user_id}, product_id: {product_id}")
+            
+            if not telegram_user_id:
+                logging.error("❌ Missing telegram_user_id in payload and metadata")
                 return web.Response(text="Missing user", status=400)
 
             videos_count = product_map.get(product_id)
@@ -1288,8 +1298,10 @@ async def tribute_subscription_webhook(request):
                     logging.error(f"❌ Error sending confirmation: {e}")
             else:
                 logging.warning(f"⚠️ Unknown product_id: {product_id}")
+        else:
+            logging.info(f"ℹ️ Event {event_name} not handled (not a payment event)")
 
-        elif event_name == "cancelled_subscription":
+        if event_name == "cancelled_subscription":
             telegram_user_id = payload.get("telegram_user_id")
             if telegram_user_id:
                 try:
