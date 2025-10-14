@@ -16,7 +16,7 @@ from yookassa import Configuration, Payment
 
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
-from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, quick_menu_inline
+from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
 from tribute_subscription import create_subscription, get_tariff_info
 
@@ -392,10 +392,6 @@ user_example_for_creation = {}  # {user_id: description} - пример для �
 # Сообщения задач для удаления при получении видео
 user_task_messages = {}  # {user_id: message_id} - сообщения "Задача отправлена в Sora 2!"
 
-# Состояния для подтверждения создания видео
-user_pending_video = {}  # {user_id: description} - описание видео ожидающее подтверждения
-user_waiting_for_edit = set()  # user_id пользователей которые редактируют запрос
-
 # === EXAMPLES: CATEGORY PAGINATION ===
 CATEGORIES_PER_PAGE = 6
 
@@ -462,13 +458,9 @@ async def cmd_start(message: types.Message):
             get_text(user_language, "no_tariff_message"),
             reply_markup=tariff_selection(user_language)
         )
-        # Также показываем основное меню и inline меню
+        # Также показываем основное меню
         await message.answer(
             reply_markup=main_menu(user_language)
-        )
-        await message.answer(
-            get_text(user_language, "choose_action"),
-            reply_markup=quick_menu_inline(user_language)
         )
     else:
         # Обычное приветствие для пользователей с тарифом
@@ -485,10 +477,10 @@ async def cmd_start(message: types.Message):
             reply_markup=main_menu(user_language)
         )
         
-        # Показываем inline меню с основными функциями
+        # Показываем кнопки ориентации
         await message.answer(
-            get_text(user_language, "choose_action"),
-            reply_markup=quick_menu_inline(user_language)
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language)
         )
 
 # === /help ===
@@ -613,139 +605,12 @@ async def callback_handler(callback: types.CallbackQuery):
             reply_markup=main_menu(user_language)
         )
         
-        # Показываем inline меню с основными функциями
+        # Показываем кнопки ориентации
         await callback.message.answer(
-            get_text(user_language, "choose_action"),
-            reply_markup=quick_menu_inline(user_language)
-        )
-        
-        await callback.answer()
-        return
-    
-    # Обработка подтверждения создания видео
-    if callback.data == "confirm_video":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        
-        if user_id in user_pending_video:
-            description = user_pending_video[user_id]
-            await create_video_confirmed(user_id, description, user_language, callback)
-        else:
-            await callback.message.edit_text(get_text(user_language, "error_restart"))
-        
-        await callback.answer()
-        return
-    
-    # Обработка редактирования запроса
-    elif callback.data == "edit_video_request":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        
-        # Помечаем что пользователь редактирует запрос
-        user_waiting_for_edit.add(user_id)
-        
-        await callback.message.edit_text(
-            get_text(user_language, "edit_request_message")
-        )
-        
-        await callback.answer()
-        return
-    
-    # Обработка возврата в главное меню
-    elif callback.data == "main_menu":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        
-        # Очищаем все состояния пользователя
-        if user_id in user_waiting_for_video_orientation:
-            del user_waiting_for_video_orientation[user_id]
-        if user_id in user_pending_video:
-            del user_pending_video[user_id]
-        if user_id in user_waiting_for_edit:
-            user_waiting_for_edit.remove(user_id)
-        if user_id in user_hint_messages:
-            del user_hint_messages[user_id]
-        
-        await callback.message.edit_text(
-            get_text(user_language, "choose_action"),
-            reply_markup=quick_menu_inline(user_language)
-        )
-        
-        await callback.answer()
-        return
-    
-    # Обработка кнопок упрощенного inline меню
-    elif callback.data == "create_video":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        
-        await callback.message.edit_text(
             get_text(user_language, "choose_orientation"),
             reply_markup=orientation_menu(user_language)
         )
-        await callback.answer()
-        return
-    
-    elif callback.data == "examples":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
         
-        markup = build_categories_keyboard(0)
-        text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
-        await callback.message.edit_text(text, reply_markup=markup)
-        await callback.answer()
-        return
-    
-    elif callback.data == "profile":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        
-        try:
-            if not user:
-                await callback.message.edit_text(get_text(user_language, "error_getting_data"))
-                return
-            
-            # Безопасное извлечение имени
-            safe_name = user.get('first_name') or "Not specified"
-            
-            # Безопасное извлечение даты
-            try:
-                date_str = user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
-            except:
-                date_str = "Unknown"
-            
-            profile_text = get_text(
-                user_language,
-                "profile",
-                name=safe_name,
-                plan=user['plan_name'],
-                videos_left=user['videos_left'],
-                date=date_str
-            )
-            
-            # Создаем inline клавиатуру с кнопками покупки тарифов
-            tariff_buttons = tariff_selection(user_language)
-            
-            await callback.message.edit_text(profile_text, reply_markup=tariff_buttons)
-            
-        except Exception as e:
-            logging.error(f"❌ Error in profile callback for user {user_id}: {e}")
-            await callback.message.edit_text(get_text(user_language, "error_getting_data"))
-        
-        await callback.answer()
-        return
-    
-    elif callback.data == "help":
-        user = await get_user(user_id)
-        user_language = user.get('language', 'en') if user else 'en'
-        
-        logging.info(f"🆘 User {user_id} clicked Help button. Adding to support queue.")
-        user_waiting_for_support.add(user_id)
-        
-        await callback.message.edit_text(
-            get_text(user_language, "help_text"),
-            reply_markup=quick_menu_inline(user_language)
-        )
         await callback.answer()
         return
     
@@ -962,20 +827,13 @@ async def handle_text(message: types.Message):
         await cmd_help(message, user_language)
     elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
         await handle_language_selection(message)
-    elif text in [get_text(lang, "btn_instructions") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        await handle_instructions(message, user_language)
     elif text in [get_text(lang, "btn_buy_foreign") for lang in ["ru", "en", "es", "ar", "hi"]]:
         await send_foreign_tariffs(message, user_language)
     elif text in [get_text(lang, "btn_buy_tariff") for lang in ["ru", "en", "es", "ar", "hi"]]:
         await handle_buy_tariff(message, user_language)
     else:
-        # Если пользователь редактирует запрос
-        if user_id in user_waiting_for_edit:
-            user_waiting_for_edit.remove(user_id)
-            # Обрабатываем как новое описание
-            await handle_video_description(message, user_language)
         # Если пользователь выбрал ориентацию, то это описание для видео
-        elif user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
+        if user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
             await handle_video_description(message, user_language)
         else:
             await message.answer(
@@ -985,7 +843,19 @@ async def handle_text(message: types.Message):
 
 async def handle_examples(message: types.Message, user_language: str):
     """Обработка кнопки 'Примеры' - показывает категории"""
-    # Показываем примеры всем пользователям без проверки подписки
+    user_id = message.from_user.id
+    user = await get_user(user_id)
+    
+    # Проверяем, есть ли у пользователя оплаченная подписка
+    if not user or user.get('plan_name') == 'Без тарифа' or user.get('videos_left', 0) <= 0:
+        # Показываем сообщение о необходимости подписки
+        await message.answer(
+            get_text(user_language, "examples_subscription_required"),
+            reply_markup=tariff_selection(user_language)
+        )
+        return
+    
+    # Если подписка есть, показываем примеры
     markup = build_categories_keyboard(0)
     text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
     await message.answer(text, reply_markup=markup)
@@ -1018,15 +888,8 @@ async def send_foreign_tariffs(message: types.Message, user_language: str):
         parse_mode="HTML"
     )
 
-async def handle_instructions(message: types.Message, user_language: str):
-    """Обработка кнопки 'Инструкции'"""
-    await message.answer(
-        get_text(user_language, "instructions_text"),
-        reply_markup=main_menu(user_language)
-    )
-
 async def handle_profile(message: types.Message, user_language: str):
-    """Обработка кнопки 'Профиль'"""
+    """Обработка кнопки 'Кабинет'"""
     try:
         user_id = message.from_user.id
         user = await get_user(user_id)
@@ -1065,12 +928,12 @@ async def handle_profile(message: types.Message, user_language: str):
         await message.answer(fallback_text, parse_mode="HTML")
 
 async def handle_video_description(message: types.Message, user_language: str):
-    """Обработка описания видео - показывает подтверждение"""
+    """Обработка описания видео"""
     user_id = message.from_user.id
     text = message.text.strip()
     orientation = user_waiting_for_video_orientation.get(user_id)
     
-    logging.info(f"🎬 Video description received for user {user_id}: {text[:50]}... (orientation: {orientation})")
+    logging.info(f"🎬 Starting video creation for user {user_id}: {text[:50]}... (orientation: {orientation})")
     
     # Получаем данные пользователя
     user = await get_user(user_id)
@@ -1086,86 +949,12 @@ async def handle_video_description(message: types.Message, user_language: str):
         )
         return
     
-    # Rate limiting: проверяем, не генерится ли уже видео
-    if user_id in user_task_messages:
-        await message.answer(
-            get_text(user_language, "video_already_generating"),
-            reply_markup=main_menu(user_language)
-        )
-        return
-    
     orientation_text = get_text(user_language, f"orientation_{orientation}_name")
     
-    # Сохраняем описание для подтверждения
-    user_pending_video[user_id] = text
-    
-    # Создаем клавиатуру подтверждения
-    confirmation_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(
-            text=get_text(user_language, "btn_confirm_video"),
-            callback_data="confirm_video"
-        )],
-        [InlineKeyboardButton(
-            text=get_text(user_language, "btn_edit_request"),
-            callback_data="edit_video_request"
-        )],
-        [InlineKeyboardButton(
-            text=get_text(user_language, "btn_main_menu"),
-            callback_data="main_menu"
-        )]
-    ])
-    
-    # Отправляем сообщение подтверждения
-    confirmation_msg = await message.answer(
-        get_text(
-            user_language,
-            "video_confirmation",
-            description=text,
-            orientation=orientation_text,
-            videos_left=user['videos_left']
-        ),
-        reply_markup=confirmation_keyboard
+    # Сразу отправляем сообщение о создании видео
+    creating_msg = await message.answer(
+        get_text(user_language, "video_creating")
     )
-    
-    # Удаляем предыдущее сообщение с подсказкой (если есть)
-    try:
-        if user_id in user_hint_messages:
-            await bot.delete_message(user_id, user_hint_messages[user_id])
-            del user_hint_messages[user_id]
-            logging.info(f"✅ Deleted hint message for user {user_id}")
-    except Exception as e:
-        logging.warning(f"⚠️ Could not delete hint message for user {user_id}: {e}")
-
-async def create_video_confirmed(user_id: int, description: str, user_language: str, callback: types.CallbackQuery = None):
-    """Создание видео после подтверждения"""
-    orientation = user_waiting_for_video_orientation.get(user_id)
-    
-    logging.info(f"🎬 Starting video creation for user {user_id}: {description[:50]}... (orientation: {orientation})")
-    
-    # Получаем данные пользователя
-    user = await get_user(user_id)
-    if not user:
-        if callback:
-            await callback.message.edit_text(get_text(user_language, "error_restart"))
-        return
-    
-    if user['videos_left'] <= 0:
-        # Отправляем грустное сообщение с предложением купить тариф
-        text = get_text(user_language, "no_videos_left")
-        if callback:
-            await callback.message.edit_text(text, reply_markup=tariff_selection(user_language))
-        return
-    
-    # Отправляем сообщение о создании видео
-    if callback:
-        creating_msg = await callback.message.edit_text(
-            get_text(user_language, "video_creating")
-        )
-    else:
-        creating_msg = await bot.send_message(
-            user_id,
-            get_text(user_language, "video_creating")
-        )
     
     # Уменьшаем количество видео ТОЛЬКО после успешного начала процесса
     await update_user_videos(user_id, user['videos_left'] - 1)
@@ -1176,7 +965,7 @@ async def create_video_confirmed(user_id: int, description: str, user_language: 
         
         # Создаем задачу через KIE.AI Sora-2 API
         task_id, status = await create_sora_task(
-            prompt=description, 
+            prompt=text, 
             aspect_ratio=aspect_ratio, 
             user_id=user_id
         )
@@ -1184,11 +973,12 @@ async def create_video_confirmed(user_id: int, description: str, user_language: 
         if task_id and status == "success":
             # Успешно отправлено в KIE.AI
             task_msg = await creating_msg.edit_text(
-                f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{description}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
+                f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{text}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
                 parse_mode="HTML"
             )
             # Сохраняем ID сообщения для последующего удаления
             user_task_messages[user_id] = task_msg.message_id
+            # Меню уже показано в предыдущем сообщении, не дублируем
             logging.info(f"✅ Sora task created for user {user_id}: {task_id}")
         else:
             # Ошибка или demo режим
@@ -1199,6 +989,7 @@ async def create_video_confirmed(user_id: int, description: str, user_language: 
                     "🎬 <b>Демо режим</b>\n\n⚠️ KIE.AI API не настроен\n🔄 В реальной версии здесь будет ваше видео\n\n" +
                     get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1)
                 )
+                # Меню уже показано в предыдущем сообщении, не дублируем
             else:
                 # Ошибка создания - возвращаем видео обратно
                 await update_user_videos(user_id, user['videos_left'])
@@ -1206,9 +997,10 @@ async def create_video_confirmed(user_id: int, description: str, user_language: 
                 await creating_msg.edit_text(
                     get_text(user_language, "video_error", videos_left=user['videos_left'])
                 )
+                # Меню уже показано в предыдущем сообщении, не дублируем
                 
     except Exception as e:
-        logging.error(f"❌ Critical error in create_video_confirmed: {e}")
+        logging.error(f"❌ Critical error in handle_video_description: {e}")
         
         # Возвращаем видео обратно при любой критической ошибке
         try:
@@ -1222,23 +1014,20 @@ async def create_video_confirmed(user_id: int, description: str, user_language: 
             await creating_msg.edit_text(
                 get_text(user_language, "video_error", videos_left=user['videos_left'])
             )
+            # Меню уже показано в предыдущем сообщении, не дублируем
         except Exception as msg_error:
             logging.error(f"❌ Failed to send error message: {msg_error}")
+            # Последняя попытка - простое сообщение
             try:
-                await bot.send_message(
-                    user_id,
+                await message.answer(
                     f"❌ Произошла ошибка при создании видео. Видео возвращено на баланс.\n\n🎞 Осталось видео: {user['videos_left']}"
                 )
             except:
                 logging.error("❌ Complete failure to notify user about error")
     
-    # Очищаем состояния
+    # Очищаем состояние
     if user_id in user_waiting_for_video_orientation:
         del user_waiting_for_video_orientation[user_id]
-    if user_id in user_pending_video:
-        del user_pending_video[user_id]
-    if user_id in user_hint_messages:
-        del user_hint_messages[user_id]
 
 async def cmd_help(message: types.Message, user_language: str):
     """Обработка команды /help"""
@@ -1439,16 +1228,7 @@ async def yookassa_webhook(request):
             # Отправляем уведомление пользователю
             try:
                 success_text = f"✅ <b>Оплата прошла успешно!</b>\n\n🎬 Тариф: <b>{tariff_name}</b>\n🎞 Видео: <b>{videos_count}</b>\n💰 Сумма: <b>{amount} ₽</b>\n\n🎉 Теперь вы можете создавать видео!"
-                
-                # Получаем язык пользователя для кнопки
-                user = await get_user(user_id)
-                user_language = user.get('language', 'en') if user else 'en'
-                
-                await bot.send_message(
-                    user_id, 
-                    success_text,
-                    reply_markup=quick_menu_inline(user_language)
-                )
+                await bot.send_message(user_id, success_text)
                 logging.info(f"💳 Success message sent to user {user_id}")
             except Exception as e:
                 logging.error(f"❌ Error sending success message to user {user_id}: {e}")
@@ -1485,14 +1265,9 @@ async def tribute_webhook(request):
                 
                 # Отправляем подтверждение пользователю
                 try:
-                    # Получаем язык пользователя для кнопки
-                    user = await get_user(telegram_user_id)
-                    user_language = user.get('language', 'en') if user else 'en'
-                    
                     await bot.send_message(
                         telegram_user_id,
-                        f"🎉 <b>Оплата прошла успешно!</b>\n\n✅ Тариф активирован\n🎬 Видео на балансе: {videos_to_add}\n\nСпасибо за покупку!",
-                        reply_markup=quick_menu_inline(user_language)
+                        f"🎉 <b>Оплата прошла успешно!</b>\n\n✅ Тариф активирован\n🎬 Видео на балансе: {videos_to_add}\n\nСпасибо за покупку!"
                     )
                     logging.info(f"✅ Tribute donation processed for user {telegram_user_id}")
                 except Exception as e:
@@ -1604,14 +1379,9 @@ async def tribute_subscription_webhook(request):
                 success = await add_user_videos(telegram_user_id, videos_count)
                 if success:
                     try:
-                        # Получаем язык пользователя для кнопки
-                        user = await get_user(telegram_user_id)
-                        user_language = user.get('language', 'en') if user else 'en'
-                        
                         await bot.send_message(
                             telegram_user_id,
-                            f"✅ <b>Your plan is activated!</b> {videos_count} videos added to your balance 🎬",
-                            reply_markup=quick_menu_inline(user_language)
+                            f"✅ <b>Your plan is activated!</b> {videos_count} videos added to your balance 🎬"
                         )
                         logging.info(f"✅ Tribute digital product activated for user {telegram_user_id} - {videos_count} videos")
                     except Exception as e:
@@ -1756,15 +1526,11 @@ async def sora_callback(request):
                             f"{get_text(user_language, 'video_success_message', videos_left=videos_left)}"
                         )
                         
-                        # Кнопки смены ориентации и главного меню (с переводом)
+                        # Кнопка смены ориентации (с переводом)
                         orientation_keyboard = InlineKeyboardMarkup(inline_keyboard=[
                             [InlineKeyboardButton(
                                 text=get_text(user_language, 'btn_change_orientation'),
                                 callback_data="change_orientation"
-                            )],
-                            [InlineKeyboardButton(
-                                text=get_text(user_language, 'btn_main_menu'),
-                                callback_data="main_menu"
                             )]
                         ])
                         

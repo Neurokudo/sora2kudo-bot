@@ -12,8 +12,7 @@ def main_menu(language: str = "en") -> ReplyKeyboardMarkup:
         [KeyboardButton(text=get_text(language, "btn_examples")), 
          KeyboardButton(text=get_text(language, "btn_profile"))],
         [KeyboardButton(text=get_text(language, "btn_help")),
-         KeyboardButton(text=get_text(language, "btn_language"))],
-        [KeyboardButton(text=get_text(language, "btn_instructions"))]
+         KeyboardButton(text=get_text(language, "btn_language"))]
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
@@ -46,12 +45,6 @@ def orientation_menu(language: str = "en") -> InlineKeyboardMarkup:
                 text=get_text(language, "orientation_horizontal"), 
                 callback_data="orientation_horizontal"
             )
-        ],
-        [
-            InlineKeyboardButton(
-                text=get_text(language, "btn_main_menu"), 
-                callback_data="main_menu"
-            )
         ]
     ])
     return markup
@@ -81,38 +74,6 @@ def tariff_selection(language: str = "en") -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text=get_text(language, "btn_buy_foreign"), 
                 callback_data="buy_foreign"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text=get_text(language, "btn_main_menu"), 
-                callback_data="main_menu"
-            )
-        ]
-    ])
-    return markup
-
-def quick_menu_inline(language: str = "en") -> InlineKeyboardMarkup:
-    """Упрощенное inline меню с основными функциями"""
-    markup = InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(
-                text=get_text(language, "btn_create_video"), 
-                callback_data="create_video"
-            ),
-            InlineKeyboardButton(
-                text=get_text(language, "btn_examples"), 
-                callback_data="examples"
-            )
-        ],
-        [
-            InlineKeyboardButton(
-                text=get_text(language, "btn_profile"), 
-                callback_data="profile"
-            ),
-            InlineKeyboardButton(
-                text=get_text(language, "btn_help"), 
-                callback_data="help"
             )
         ]
     ])

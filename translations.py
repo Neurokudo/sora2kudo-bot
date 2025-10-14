@@ -6,7 +6,7 @@
 LANG = {
     "ru": {
         # Основные сообщения
-        "welcome": "🐱 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n💰 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n✨ <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>",
+        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🔥 <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>\n\n💡 <b>Выбери действие:</b>",
         "choose_action": "💡 <b>Выбери действие:</b>",
         "choose_language": "🌍 <b>Выберите язык:</b>",
         "lang_selected": "✅ <b>Язык изменён на Русский.</b>",
@@ -15,11 +15,9 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 Создать видео",
         "btn_examples": "📘 Примеры", 
-        "btn_profile": "👤 Профиль",
+        "btn_profile": "👤 Кабинет 💰 Оплата",
         "btn_help": "❓ Помощь",
         "btn_language": "🌍 Язык",
-        "btn_instructions": "📖 Инструкции",
-        "btn_main_menu": "🏠 Главное меню",
         
         # Ориентация видео
         "choose_orientation": "📐 <b>Выбери ориентацию для будущих видео:</b>",
@@ -31,12 +29,6 @@ LANG = {
         
         # Создание видео
                 "create_video": "🎬 <b>Создание видео</b>\n\n📐 Ориентация: <b>{orientation}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n\n✏️ <b>Опиши сцену простыми словами:</b>\nКто в кадре, где происходит действие, что они делают, какая атмосфера и погода.\nДобавь, если нужно, детали: одежду, эмоции, свет, фон.\n\n📸 <b>Пример:</b>\n<code>Рыбаки поймали в лодку русалкоподобное чудище, рыбак в тельняшке и камуфляжных штанах, тянут ее сетью, чудище женоподобное, вырывается и шипит, съёмка на телефон, грудь покрыта плотной чешуей, склизкая, вся в тине.</code>",
-                "video_confirmation": "📝 <b>Подтверждение создания видео</b>\n\n<b>Ваш запрос:</b>\n<i>{description}</i>\n\n📐 <b>Ориентация:</b> {orientation}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n❓ <b>Создать видео с этим описанием?</b>",
-                "btn_confirm_video": "✅ Да, создать",
-                "btn_edit_request": "✏️ Редактировать запрос",
-                "edit_request_message": "✏️ <b>Введите новое описание для видео:</b>",
-                "video_already_generating": "⏳ <b>Дождитесь завершения предыдущего видео</b>\n\nСейчас уже создается видео. Пожалуйста, дождитесь его завершения перед созданием нового.",
-                "instructions_text": "📖 <b>Инструкции по использованию бота</b>\n\n🚧 <i>Раздел в разработке. Скоро здесь появятся подробные инструкции.</i>",
                 "video_accepted": "🎬 <b>Принято описание!</b>\n\n📝 <b>Описание:</b> {description}\n📐 <b>Ориентация:</b> {orientation}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n⏳ <b>Ваше видео отправлено в очередь на создание...</b>",
                 "video_ready": "🎉 <b>Ваше видео готово!</b>\n\n🎬 Видео успешно создано через Sora 2\n📹 <b>Видео отправлено в чат выше</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n\n💡 Для продолжения создания пришлите новое описание!",
                 "video_creating": "🎬 <b>Создание видео...</b>\n\n⏳ Обрабатываем ваше описание через Sora 2\n🔄 Это может занять 2-3 минуты\n\n📹 Видео будет отправлено в этот чат как только будет готово!",
@@ -98,7 +90,7 @@ LANG = {
     
     "en": {
         # Основные сообщения
-        "welcome": "🐱 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n💰 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n✨ <b>Create amazing viral videos and delight your friends and followers!</b>",
+        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🔥 <b>Create amazing viral videos and delight your friends and followers!</b>\n\n💡 <b>Choose an action:</b>",
         "choose_action": "💡 <b>Choose an action:</b>",
         "choose_language": "🌍 <b>Choose your language:</b>",
         "lang_selected": "✅ <b>Language set to English.</b>",
@@ -107,11 +99,9 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 Create Video",
         "btn_examples": "📘 Examples", 
-        "btn_profile": "👤 Profile",
+        "btn_profile": "👤 Cabinet 💰 Payment",
         "btn_help": "❓ Help",
         "btn_language": "🌍 Language",
-        "btn_instructions": "📖 Instructions",
-        "btn_main_menu": "🏠 Main Menu",
         
         # Ориентация видео
         "choose_orientation": "📐 <b>Choose orientation for future videos:</b>",
@@ -123,12 +113,6 @@ LANG = {
         
         # Создание видео
                 "create_video": "🎬 <b>Creating Video</b>\n\n📐 Orientation: <b>{orientation}</b>\n🎞 Videos left: <b>{videos_left}</b>\n\n✏️ <b>Describe the scene in simple words:</b>\nWho is in the frame, where the action takes place, what they are doing, atmosphere and weather.\nAdd details if needed: clothing, emotions, lighting, background.\n\n📸 <b>Example:</b>\n<code>Fishermen caught a mermaid-like creature in a boat, fisherman in striped shirt and camo pants pulls the net, creature is feminine, struggles and hisses, phone recording, chest covered with dense scales, slimy, covered in mud.</code>",
-                "video_confirmation": "📝 <b>Video Creation Confirmation</b>\n\n<b>Your request:</b>\n<i>{description}</i>\n\n📐 <b>Orientation:</b> {orientation}\n🎞 <b>Videos left:</b> {videos_left}\n\n❓ <b>Create video with this description?</b>",
-                "btn_confirm_video": "✅ Yes, create",
-                "btn_edit_request": "✏️ Edit request",
-                "edit_request_message": "✏️ <b>Enter new description for video:</b>",
-                "video_already_generating": "⏳ <b>Wait for previous video to complete</b>\n\nA video is already being created. Please wait for it to finish before creating a new one.",
-                "instructions_text": "📖 <b>Bot Usage Instructions</b>\n\n🚧 <i>Section under development. Detailed instructions coming soon.</i>",
                 "video_accepted": "🎬 <b>Description accepted!</b>\n\n📝 <b>Description:</b> {description}\n📐 <b>Orientation:</b> {orientation}\n🎞 <b>Videos left:</b> {videos_left}\n\n⏳ <b>Your video has been queued for creation...</b>",
                 "video_ready": "🎉 <b>Your video is ready!</b>\n\n🎬 Video successfully created via Sora 2\n📹 <b>Video sent to chat above</b>\n🎞 Videos left: <b>{videos_left}</b>\n\n💡 To continue creating, send a new description!",
                 "video_creating": "🎬 <b>Creating video...</b>\n\n⏳ Processing your description through Sora 2\n🔄 This may take 2-3 minutes\n\n📹 Video will be sent to this chat once ready!",
@@ -190,7 +174,7 @@ LANG = {
     
     "es": {
         # Основные сообщения
-        "welcome": "🐱 ¡Hola, {name}! Este es <b>SORA 2 de Neurokudo</b>.\n\n💰 <b>Tu plan:</b> {plan}\n🎞 <b>Videos restantes:</b> {videos_left}\n\n✨ <b>¡Crea videos virales increíbles y deleita a tus amigos y seguidores!</b>",
+        "welcome": "👋 ¡Hola, {name}! Este es <b>SORA 2 de Neurokudo</b>.\n\n🎬 <b>Tu plan:</b> {plan}\n🎞 <b>Videos restantes:</b> {videos_left}\n\nAquí puedes crear videos desde descripciones — solo escribe lo que quieres filmar.\n\n💡 <b>Elige una acción:</b>",
         "choose_action": "💡 <b>Elige una acción:</b>",
         "choose_language": "🌍 <b>Elige tu idioma:</b>",
         "lang_selected": "✅ <b>Idioma cambiado a Español.</b>",
@@ -199,11 +183,9 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 Crear Video",
         "btn_examples": "📘 Ejemplos", 
-        "btn_profile": "👤 Perfil",
+        "btn_profile": "👤 Gabinete 💰 Pago",
         "btn_help": "❓ Ayuda",
         "btn_language": "🌍 Idioma",
-        "btn_instructions": "📖 Instrucciones",
-        "btn_main_menu": "🏠 Menú Principal",
         
         # Ориентация видео
         "choose_orientation": "📐 <b>Elige orientación para futuros videos:</b>",
@@ -215,12 +197,6 @@ LANG = {
         
         # Создание видео
         "create_video": "🎬 <b>Creando Video</b>\n\n📐 Orientación: <b>{orientation}</b>\n🎞 Videos restantes: <b>{videos_left}</b>\n\n✏️ <b>Describe lo que quieres filmar:</b>\nEjemplo: <code>Pescadores sacando red con sirena adentro</code>",
-        "video_confirmation": "📝 <b>Confirmación de creación de video</b>\n\n<b>Tu solicitud:</b>\n<i>{description}</i>\n\n📐 <b>Orientación:</b> {orientation}\n🎞 <b>Videos restantes:</b> {videos_left}\n\n❓ <b>¿Crear video con esta descripción?</b>",
-        "btn_confirm_video": "✅ Sí, crear",
-        "btn_edit_request": "✏️ Editar solicitud",
-        "edit_request_message": "✏️ <b>Ingresa nueva descripción para el video:</b>",
-        "video_already_generating": "⏳ <b>Espera a que termine el video anterior</b>\n\nYa se está creando un video. Por favor espera a que termine antes de crear uno nuevo.",
-        "instructions_text": "📖 <b>Instrucciones de uso del bot</b>\n\n🚧 <i>Sección en desarrollo. Instrucciones detalladas próximamente.</i>",
         "video_accepted": "🎬 <b>¡Descripción aceptada!</b>\n\n📝 <b>Descripción:</b> {description}\n📐 <b>Orientación:</b> {orientation}\n🎞 <b>Videos restantes:</b> {videos_left}\n\n⏳ Video siendo creado via Sora 2...\n📨 ¡El resultado será enviado aquí!",
         "no_videos_left": "🚫 <b>¡Te quedaste sin videos!</b>\n\n💳 Compra nuevo paquete en <b>💰 Perfil</b>",
         
@@ -282,7 +258,7 @@ LANG = {
     
     "ar": {
         # Основные сообщения
-        "welcome": "🐱 مرحباً {name}! هذا هو <b>SORA 2 من Neurokudo</b>.\n\n💰 <b>خطتك:</b> {plan}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\n✨ <b>أنشئ فيديوهات فيروسية رائعة وأسعد أصدقاءك ومتابعيك!</b>",
+        "welcome": "👋 مرحباً {name}! هذا هو <b>SORA 2 من Neurokudo</b>.\n\n🎬 <b>خطتك:</b> {plan}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\nهنا يمكنك إنشاء فيديوهات من الوصف — فقط اكتب ما تريد تصويره.\n\n💡 <b>اختر إجراء:</b>",
         "choose_action": "💡 <b>اختر إجراء:</b>",
         "choose_language": "🌍 <b>اختر لغتك:</b>",
         "lang_selected": "✅ <b>تم تغيير اللغة إلى العربية.</b>",
@@ -291,11 +267,9 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 إنشاء فيديو",
         "btn_examples": "📘 أمثلة", 
-        "btn_profile": "👤 الملف الشخصي",
+        "btn_profile": "👤 مكتب 💰 دفع",
         "btn_help": "❓ مساعدة",
         "btn_language": "🌍 اللغة",
-        "btn_instructions": "📖 التعليمات",
-        "btn_main_menu": "🏠 القائمة الرئيسية",
         
         # Ориентация видео
         "choose_orientation": "📐 <b>اختر اتجاه الفيديوهات المستقبلية:</b>",
@@ -307,12 +281,6 @@ LANG = {
         
         # Создание видео
         "create_video": "🎬 <b>إنشاء فيديو</b>\n\n📐 الاتجاه: <b>{orientation}</b>\n🎞 الفيديوهات المتبقية: <b>{videos_left}</b>\n\n✏️ <b>صف ما تريد تصويره:</b>\nمثال: <code>صيادون يسحبون شبكة بها حورية</code>",
-        "video_confirmation": "📝 <b>تأكيد إنشاء الفيديو</b>\n\n<b>طلبك:</b>\n<i>{description}</i>\n\n📐 <b>الاتجاه:</b> {orientation}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\n❓ <b>إنشاء فيديو بهذا الوصف؟</b>",
-        "btn_confirm_video": "✅ نعم، أنشئ",
-        "btn_edit_request": "✏️ تعديل الطلب",
-        "edit_request_message": "✏️ <b>أدخل وصفاً جديداً للفيديو:</b>",
-        "video_already_generating": "⏳ <b>انتظر حتى ينتهي الفيديو السابق</b>\n\nيتم إنشاء فيديو بالفعل. يرجى الانتظار حتى ينتهي قبل إنشاء فيديو جديد.",
-        "instructions_text": "📖 <b>تعليمات استخدام البوت</b>\n\n🚧 <i>القسم قيد التطوير. تعليمات مفصلة قريباً.</i>",
         "video_accepted": "🎬 <b>تم قبول الوصف!</b>\n\n📝 <b>الوصف:</b> {description}\n📐 <b>الاتجاه:</b> {orientation}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\n⏳ يتم إنشاء الفيديو عبر Sora 2...\n📨 ستتم إرسال النتيجة هنا!",
         "no_videos_left": "🚫 <b>انتهت فيديوهاتك!</b>\n\n💳 اشتر باقة جديدة في <b>💰 الملف الشخصي</b>",
         
@@ -374,20 +342,18 @@ LANG = {
     
     "hi": {
         # Основные сообщения
-        "welcome": "🐱 नमस्ते {name}! यह है <b>SORA 2 by Neurokudo</b>।\n\n💰 <b>आपकी योजना:</b> {plan}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\n✨ <b>शानदार वायरल वीडियो बनाएं और अपने दोस्तों और फॉलोअर्स को खुश करें!</b>",
+        "welcome": "👋 नमस्ते {name}! यह है <b>SORA 2 by Neurokudo</b>।\n\n🎬 <b>आपकी योजना:</b> {plan}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\nयहाँ आप विवरण से वीडियो बना सकते हैं — बस लिखें कि आप क्या फिल्माना चाहते हैं।\n\n💡 <b>एक क्रिया चुनें:</b>",
         "choose_action": "💡 <b>एक क्रिया चुनें:</b>",
         "choose_language": "🌍 <b>अपनी भाषा चुनें:</b>",
         "lang_selected": "✅ <b>भाषा हिंदी में बदल दी गई है।</b>",
         "help": "अपना विचार बताओ — मैं उसे वीडियो में बदल दूँगा।",
         
-        # Меню и кनопки
+        # Меню и кнопки
         "btn_create_video": "🎬 वीडियो बनाएं",
         "btn_examples": "📘 उदाहरण", 
-        "btn_profile": "👤 प्रोफाइल",
+        "btn_profile": "👤 कैबिनेट 💰 भुगतान",
         "btn_help": "❓ मदद",
         "btn_language": "🌍 भाषा",
-        "btn_instructions": "📖 निर्देश",
-        "btn_main_menu": "🏠 मुख्य मेनू",
         
         # Ориентация видео
         "choose_orientation": "📐 <b>भविष्य के वीडियो के लिए दिशा चुनें:</b>",
@@ -399,12 +365,6 @@ LANG = {
         
         # Создание видео
         "create_video": "🎬 <b>वीडियो बना रहे हैं</b>\n\n📐 दिशा: <b>{orientation}</b>\n🎞 बचे वीडियो: <b>{videos_left}</b>\n\n✏️ <b>बताएं कि आप क्या फिल्माना चाहते हैं:</b>\nउदाहरण: <code>मछुआरे जाल खींच रहे हैं जिसमें राक्षसी है</code>",
-        "video_confirmation": "📝 <b>वीडियो निर्माण की पुष्टि</b>\n\n<b>आपका अनुरोध:</b>\n<i>{description}</i>\n\n📐 <b>दिशा:</b> {orientation}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\n❓ <b>इस विवरण के साथ वीडियो बनाएं?</b>",
-        "btn_confirm_video": "✅ हां, बनाएं",
-        "btn_edit_request": "✏️ अनुरोध संपादित करें",
-        "edit_request_message": "✏️ <b>वीडियो के लिए नया विवरण दर्ज करें:</b>",
-        "video_already_generating": "⏳ <b>पिछले वीडियो के पूरा होने की प्रतीक्षा करें</b>\n\nपहले से ही एक वीडियो बनाया जा रहा है। कृपया नया बनाने से पहले इसके पूरा होने की प्रतीक्षा करें।",
-        "instructions_text": "📖 <b>बॉट उपयोग निर्देश</b>\n\n🚧 <i>अनुभाग विकास में है। विस्तृत निर्देश जल्द ही आ रहे हैं।</i>",
         "video_accepted": "🎬 <b>विवरण स्वीकार किया गया!</b>\n\n📝 <b>विवरण:</b> {description}\n📐 <b>दिशा:</b> {orientation}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\n⏳ Sora 2 के माध्यम से वीडियो बनाया जा रहा है...\n📨 परिणाम यहाँ भेजा जाएगा!",
         "no_videos_left": "🚫 <b>आपके वीडियो खत्म हो गए!</b>\n\n💳 <b>💰 प्रोफाइल</b> में नया पैकेज खरीदें",
         
