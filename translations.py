@@ -15,7 +15,7 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 Создать видео",
         "btn_examples": "📘 Примеры", 
-        "btn_profile": "💰 Кабинет",
+        "btn_profile": "👤 Кабинет 💰 Оплата",
         "btn_help": "❓ Помощь",
         "btn_language": "🌍 Язык",
         
@@ -99,7 +99,7 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 Create Video",
         "btn_examples": "📘 Examples", 
-        "btn_profile": "💰 Profile",
+        "btn_profile": "👤 Cabinet 💰 Payment",
         "btn_help": "❓ Help",
         "btn_language": "🌍 Language",
         
@@ -183,7 +183,7 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 Crear Video",
         "btn_examples": "📘 Ejemplos", 
-        "btn_profile": "💰 Perfil",
+        "btn_profile": "👤 Gabinete 💰 Pago",
         "btn_help": "❓ Ayuda",
         "btn_language": "🌍 Idioma",
         
@@ -267,7 +267,7 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 إنشاء فيديو",
         "btn_examples": "📘 أمثلة", 
-        "btn_profile": "💰 الملف الشخصي",
+        "btn_profile": "👤 مكتب 💰 دفع",
         "btn_help": "❓ مساعدة",
         "btn_language": "🌍 اللغة",
         
@@ -351,7 +351,7 @@ LANG = {
         # Меню и кнопки
         "btn_create_video": "🎬 वीडियो बनाएं",
         "btn_examples": "📘 उदाहरण", 
-        "btn_profile": "💰 प्रोफाइल",
+        "btn_profile": "👤 कैबिनेट 💰 भुगतान",
         "btn_help": "❓ मदद",
         "btn_language": "🌍 भाषा",
         
