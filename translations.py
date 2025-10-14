@@ -6,7 +6,7 @@
 LANG = {
     "ru": {
         # Основные сообщения
-        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🔥 <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>\n\n💡 <b>Выбери действие:</b>",
+        "welcome": "🐱 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n💰 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n✨ <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>",
         "choose_action": "💡 <b>Выбери действие:</b>",
         "choose_language": "🌍 <b>Выберите язык:</b>",
         "lang_selected": "✅ <b>Язык изменён на Русский.</b>",
@@ -98,7 +98,7 @@ LANG = {
     
     "en": {
         # Основные сообщения
-        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🔥 <b>Create amazing viral videos and delight your friends and followers!</b>\n\n💡 <b>Choose an action:</b>",
+        "welcome": "🐱 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n💰 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n✨ <b>Create amazing viral videos and delight your friends and followers!</b>",
         "choose_action": "💡 <b>Choose an action:</b>",
         "choose_language": "🌍 <b>Choose your language:</b>",
         "lang_selected": "✅ <b>Language set to English.</b>",
@@ -190,7 +190,7 @@ LANG = {
     
     "es": {
         # Основные сообщения
-        "welcome": "👋 ¡Hola, {name}! Este es <b>SORA 2 de Neurokudo</b>.\n\n🎬 <b>Tu plan:</b> {plan}\n🎞 <b>Videos restantes:</b> {videos_left}\n\nAquí puedes crear videos desde descripciones — solo escribe lo que quieres filmar.\n\n💡 <b>Elige una acción:</b>",
+        "welcome": "🐱 ¡Hola, {name}! Este es <b>SORA 2 de Neurokudo</b>.\n\n💰 <b>Tu plan:</b> {plan}\n🎞 <b>Videos restantes:</b> {videos_left}\n\n✨ <b>¡Crea videos virales increíbles y deleita a tus amigos y seguidores!</b>",
         "choose_action": "💡 <b>Elige una acción:</b>",
         "choose_language": "🌍 <b>Elige tu idioma:</b>",
         "lang_selected": "✅ <b>Idioma cambiado a Español.</b>",
@@ -282,7 +282,7 @@ LANG = {
     
     "ar": {
         # Основные сообщения
-        "welcome": "👋 مرحباً {name}! هذا هو <b>SORA 2 من Neurokudo</b>.\n\n🎬 <b>خطتك:</b> {plan}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\nهنا يمكنك إنشاء فيديوهات من الوصف — فقط اكتب ما تريد تصويره.\n\n💡 <b>اختر إجراء:</b>",
+        "welcome": "🐱 مرحباً {name}! هذا هو <b>SORA 2 من Neurokudo</b>.\n\n💰 <b>خطتك:</b> {plan}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\n✨ <b>أنشئ فيديوهات فيروسية رائعة وأسعد أصدقاءك ومتابعيك!</b>",
         "choose_action": "💡 <b>اختر إجراء:</b>",
         "choose_language": "🌍 <b>اختر لغتك:</b>",
         "lang_selected": "✅ <b>تم تغيير اللغة إلى العربية.</b>",
@@ -374,7 +374,7 @@ LANG = {
     
     "hi": {
         # Основные сообщения
-        "welcome": "👋 नमस्ते {name}! यह है <b>SORA 2 by Neurokudo</b>।\n\n🎬 <b>आपकी योजना:</b> {plan}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\nयहाँ आप विवरण से वीडियो बना सकते हैं — बस लिखें कि आप क्या फिल्माना चाहते हैं।\n\n💡 <b>एक क्रिया चुनें:</b>",
+        "welcome": "🐱 नमस्ते {name}! यह है <b>SORA 2 by Neurokudo</b>।\n\n💰 <b>आपकी योजना:</b> {plan}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\n✨ <b>शानदार वायरल वीडियो बनाएं और अपने दोस्तों और फॉलोअर्स को खुश करें!</b>",
         "choose_action": "💡 <b>एक क्रिया चुनें:</b>",
         "choose_language": "🌍 <b>अपनी भाषा चुनें:</b>",
         "lang_selected": "✅ <b>भाषा हिंदी में बदल दी गई है।</b>",
