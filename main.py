@@ -467,6 +467,7 @@ async def cmd_start(message: types.Message):
             reply_markup=main_menu(user_language)
         )
         await message.answer(
+            get_text(user_language, "choose_action"),
             reply_markup=quick_menu_inline(user_language)
         )
     else:
@@ -486,6 +487,7 @@ async def cmd_start(message: types.Message):
         
         # Показываем inline меню с основными функциями
         await message.answer(
+            get_text(user_language, "choose_action"),
             reply_markup=quick_menu_inline(user_language)
         )
 
@@ -613,6 +615,7 @@ async def callback_handler(callback: types.CallbackQuery):
         
         # Показываем inline меню с основными функциями
         await callback.message.answer(
+            get_text(user_language, "choose_action"),
             reply_markup=quick_menu_inline(user_language)
         )
         
