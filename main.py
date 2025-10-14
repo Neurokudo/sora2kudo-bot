@@ -1520,18 +1520,18 @@ async def sora_callback(request):
                         user_language = user.get('language', 'en') if user else 'en'
                         videos_left = user.get('videos_left', 0) if user else 0
                         
-                        # Сообщение с инструкцией
+                        # Сообщение с инструкцией (с переводами)
                         instruction_text = (
-                            f"🎉 <b>Ваше видео готово!</b>\n\n"
-                            f"🎬 Видео успешно создано через Sora 2\n"
-                            f"📹 <b>Видео отправлено в чат выше</b>\n"
-                            f"🎞 Осталось видео: <b>{videos_left}</b>\n\n"
-                            f"💡 <b>Для того, чтобы создать новое видео, напиши новый запрос ✍️</b>"
+                            f"{get_text(user_language, 'video_success_title')}\n\n"
+                            f"{get_text(user_language, 'video_success_message', videos_left=videos_left)}"
                         )
                         
-                        # Кнопка смены ориентации
+                        # Кнопка смены ориентации (с переводом)
                         orientation_keyboard = InlineKeyboardMarkup(inline_keyboard=[
-                            [InlineKeyboardButton(text="📐 Сменить ориентацию", callback_data="change_orientation")]
+                            [InlineKeyboardButton(
+                                text=get_text(user_language, 'btn_change_orientation'),
+                                callback_data="change_orientation"
+                            )]
                         ])
                         
                         await bot.send_message(
@@ -1550,7 +1550,48 @@ async def sora_callback(request):
             else:
                 logging.error(f"❌ Could not extract user_id from param: {param}")
         else:
+            # Обработка ошибок от Sora 2
             logging.warning(f"🎬 Sora callback error: {data}")
+            
+            # Пытаемся извлечь user_id из param
+            param = data.get("data", {}).get("param", "")
+            user_id = extract_user_from_param(param)
+            
+            if user_id:
+                # Возвращаем видео на баланс
+                try:
+                    user = await get_user(user_id)
+                    if user:
+                        current_videos = user.get('videos_left', 0)
+                        await add_user_videos(user_id, 1)  # Возвращаем 1 видео
+                        user_language = user.get('language', 'en')
+                        videos_left = current_videos + 1
+                        
+                        # Удаляем сообщение "Задача отправлена в Sora 2!" если есть
+                        if user_id in user_task_messages:
+                            try:
+                                await bot.delete_message(user_id, user_task_messages[user_id])
+                                del user_task_messages[user_id]
+                            except Exception as e:
+                                logging.warning(f"⚠️ Could not delete task message for user {user_id}: {e}")
+                        
+                        # Отправляем сообщение об ошибке (с переводами)
+                        error_message = (
+                            f"{get_text(user_language, 'sora_error_title')}\n\n"
+                            f"{get_text(user_language, 'sora_error_rules')}\n\n"
+                            f"{get_text(user_language, 'sora_error_refund', videos_left=videos_left)}"
+                        )
+                        
+                        await bot.send_message(
+                            user_id,
+                            error_message,
+                            parse_mode="HTML",
+                            disable_web_page_preview=True
+                        )
+                        
+                        logging.info(f"✅ Error message sent to user {user_id}, video returned to balance")
+                except Exception as e:
+                    logging.error(f"❌ Error handling Sora error for user {user_id}: {e}")
             
         return web.Response(text="OK")
         

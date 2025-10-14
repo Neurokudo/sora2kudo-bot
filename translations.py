@@ -72,6 +72,16 @@ LANG = {
         "no_tariff_message": "🚀 <b>Начни создавать вирусные видео прямо сейчас!</b>\n\n💎 <b>Выбери тариф и получи доступ к SORA 2:</b>\n🌱 <b>Пробный</b> — 3 видео за €5\n✨ <b>Базовый</b> — 10 видео за €12\n💎 <b>Максимум</b> — 30 видео за €25\n\n🔥 <b>Создавай крутые видео и радуй друзей и подписчиков!</b>",
         "examples_subscription_required": "🔒 <b>Примеры доступны только с подпиской!</b>\n\n💎 <b>Получите доступ к готовым идеям для вирусных видео:</b>\n🌱 <b>Пробный</b> — 3 видео за €5\n✨ <b>Базовый</b> — 10 видео за €12\n💎 <b>Максимум</b> — 30 видео за €25\n\n🔥 <b>Создавайте крутые видео и радуйте друзей!</b>",
         
+        # Сообщения после генерации видео
+        "video_success_title": "🎉 <b>Ваше видео готово!</b>",
+        "video_success_message": "🎞 <b>Осталось видео:</b> {videos_left}\n\n💡 <b>Для создания нового видео напишите новый запрос ✍️</b>",
+        "btn_change_orientation": "📐 Сменить ориентацию",
+        
+        # Сообщения об ошибках Sora 2
+        "sora_error_title": "😔 <b>Мы не можем создать такое видео, данный запрос нарушает правила Sora 2</b>",
+        "sora_error_rules": "📖 <b>Более подробно о правилах:</b> https://openai.com/policies/usage-policies",
+        "sora_error_refund": "💰 <b>Видео возвращено на баланс</b>\n🎞 <b>Осталось видео:</b> {videos_left}",
+        
         # Общие фразы
         "use_buttons": "💡 Используй кнопки меню или выбери ориентацию видео!",
         "error_restart": "❌ Ошибка. Попробуй /start",
@@ -146,6 +156,16 @@ LANG = {
         "no_tariff_message": "🚀 <b>Start creating viral videos right now!</b>\n\n💎 <b>Choose a tariff and get access to SORA 2:</b>\n🌱 <b>Trial</b> — 3 videos for €5\n✨ <b>Basic</b> — 10 videos for €12\n💎 <b>Maximum</b> — 30 videos for €25\n\n🔥 <b>Create amazing videos and delight your friends and followers!</b>",
         "examples_subscription_required": "🔒 <b>Examples available only with subscription!</b>\n\n💎 <b>Get access to ready-made ideas for viral videos:</b>\n🌱 <b>Trial</b> — 3 videos for €5\n✨ <b>Basic</b> — 10 videos for €12\n💎 <b>Maximum</b> — 30 videos for €25\n\n🔥 <b>Create amazing videos and delight your friends!</b>",
         
+        # Сообщения после генерации видео
+        "video_success_title": "🎉 <b>Your video is ready!</b>",
+        "video_success_message": "🎞 <b>Videos left:</b> {videos_left}\n\n💡 <b>To create a new video, send a new request ✍️</b>",
+        "btn_change_orientation": "📐 Change Orientation",
+        
+        # Сообщения об ошибках Sora 2
+        "sora_error_title": "😔 <b>We cannot create this video, this request violates Sora 2 rules</b>",
+        "sora_error_rules": "📖 <b>More details about the rules:</b> https://openai.com/policies/usage-policies",
+        "sora_error_refund": "💰 <b>Video returned to balance</b>\n🎞 <b>Videos left:</b> {videos_left}",
+        
         # Общие фразы
         "use_buttons": "💡 Use menu buttons or choose video orientation!",
         "error_restart": "❌ Error. Try /start",
@@ -210,6 +230,16 @@ LANG = {
         "foreign_basic": "Básico",
         "foreign_premium": "Máximo",
         "videos": "videos",
+        
+        # Сообщения после генерации видео
+        "video_success_title": "🎉 <b>¡Tu video está listo!</b>",
+        "video_success_message": "🎞 <b>Videos restantes:</b> {videos_left}\n\n💡 <b>Para crear un nuevo video, envía una nueva solicitud ✍️</b>",
+        "btn_change_orientation": "📐 Cambiar Orientación",
+        
+        # Сообщения об ошибках Sora 2
+        "sora_error_title": "😔 <b>No podemos crear este video, esta solicitud viola las reglas de Sora 2</b>",
+        "sora_error_rules": "📖 <b>Más detalles sobre las reglas:</b> https://openai.com/policies/usage-policies",
+        "sora_error_refund": "💰 <b>Video devuelto al saldo</b>\n🎞 <b>Videos restantes:</b> {videos_left}",
         
         # Общие фразы
         "use_buttons": "💡 ¡Usa botones del menú o elige orientación de video!",
@@ -276,6 +306,16 @@ LANG = {
         "foreign_premium": "قصوى",
         "videos": "فيديو",
         
+        # Сообщения после генерации видео
+        "video_success_title": "🎉 <b>فيديوك جاهز!</b>",
+        "video_success_message": "🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\n💡 <b>لإنشاء فيديو جديد، أرسل طلباً جديداً ✍️</b>",
+        "btn_change_orientation": "📐 تغيير الاتجاه",
+        
+        # Сообщения об ошибках Sora 2
+        "sora_error_title": "😔 <b>لا يمكننا إنشاء هذا الفيديو، هذا الطلب يخالف قواعد Sora 2</b>",
+        "sora_error_rules": "📖 <b>مزيد من التفاصيل حول القواعد:</b> https://openai.com/policies/usage-policies",
+        "sora_error_refund": "💰 <b>تم إرجاع الفيديو إلى الرصيد</b>\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}",
+        
         # Общие фразы
         "use_buttons": "💡 استخدم أزرار القائمة أو اختر اتجاه الفيديو!",
         "error_restart": "❌ خطأ. جرب /start",
@@ -340,6 +380,16 @@ LANG = {
         "foreign_basic": "बेसिक",
         "foreign_premium": "मैक्स",
         "videos": "वीडियो",
+        
+        # Сообщения после генерации видео
+        "video_success_title": "🎉 <b>आपका वीडियो तैयार है!</b>",
+        "video_success_message": "🎞 <b>बचे वीडियो:</b> {videos_left}\n\n💡 <b>नया वीडियो बनाने के लिए नया अनुरोध भेजें ✍️</b>",
+        "btn_change_orientation": "📐 दिशा बदलें",
+        
+        # Сообщения об ошибках Sora 2
+        "sora_error_title": "😔 <b>हम यह वीडियो नहीं बना सकते, यह अनुरोध Sora 2 के नियमों का उल्लंघन करता है</b>",
+        "sora_error_rules": "📖 <b>नियमों के बारे में अधिक जानकारी:</b> https://openai.com/policies/usage-policies",
+        "sora_error_refund": "💰 <b>वीडियो शेष राशि में वापस कर दिया गया</b>\n🎞 <b>बचे वीडियो:</b> {videos_left}",
         
         # Общие фразы
         "use_buttons": "💡 मेनू बटन का उपयोग करें या वीडियो दिशा चुनें!",
