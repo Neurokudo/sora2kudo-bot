@@ -60,9 +60,9 @@ tariff_videos = {
 }
 
 tariff_prices = {
-    "trial": 390,
-    "basic": 990,
-    "maximum": 2190
+    "trial": 5,
+    "basic": 12,
+    "maximum": 25
 }
 
 tariff_names = {
@@ -1095,7 +1095,12 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
     
     if not YOOKASSA_SHOP_ID or not YOOKASSA_SECRET_KEY:
         # Если YooKassa не настроен, показываем заглушку
-        payment_text = f"💳 <b>Покупка тарифа</b>\n\n🎬 Тариф: <b>{tariff}</b>\n💰 Цена: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n⚠️ Система оплаты временно недоступна.\nПопробуйте позже!"
+        payment_text = (
+            f"{get_text(user_language, 'payment_title', tariff=tariff)}\n\n"
+            f"{get_text(user_language, 'payment_amount', price=price)}\n"
+            f"{get_text(user_language, 'payment_videos', videos=videos_count)}\n\n"
+            f"{get_text(user_language, 'payment_unavailable')}"
+        )
         await callback.message.edit_text(payment_text)
         await callback.answer()
         return
@@ -1111,22 +1116,27 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
             # Получаем правильное название тарифа
             tariff_display_name = tariff_names.get(tariff, tariff)
             
-            payment_text = f"💳 <b>Оплата тарифа {tariff_display_name}</b>\n\n💰 Сумма: <b>{price} ₽</b>\n🎞 Видео: <b>{videos_count}</b>\n\n📱 После оплаты ваш тариф будет автоматически активирован!"
+            payment_text = (
+                f"{get_text(user_language, 'payment_title', tariff=tariff_display_name)}\n\n"
+                f"{get_text(user_language, 'payment_amount', price=price)}\n"
+                f"{get_text(user_language, 'payment_videos', videos=videos_count)}\n\n"
+                f"{get_text(user_language, 'payment_activation')}"
+            )
             
             # Создаем inline кнопку для оплаты
             pay_button = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="💳 ОПЛАТИТЬ", url=payment_url)]
+                [InlineKeyboardButton(text=get_text(user_language, 'payment_button'), url=payment_url)]
             ])
             
             await callback.message.edit_text(payment_text, reply_markup=pay_button)
             await callback.answer()
         else:
-            await callback.message.edit_text("❌ Ошибка создания платежа. Попробуйте позже.")
+            await callback.message.edit_text(get_text(user_language, 'payment_error'))
             await callback.answer()
             
     except Exception as e:
         logging.error(f"❌ Error in handle_payment: {e}")
-        await callback.message.edit_text("❌ Произошла ошибка. Попробуйте позже.")
+        await callback.message.edit_text(get_text(user_language, 'payment_error'))
         await callback.answer()
 
 async def handle_foreign_payment(callback: types.CallbackQuery, user_language: str):
