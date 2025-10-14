@@ -442,13 +442,12 @@ async def cmd_start(message: types.Message):
     # Получаем язык пользователя
     user_language = user.get('language', 'en') if user else 'en'
     
-    # Показываем выбор языка только для новых пользователей
-    if user.get('language') == 'en' and not user.get('first_start_shown'):
-        await message.answer(
-            "🌍 <b>Выберите язык / Choose your language:</b>",
-            reply_markup=language_selection()
-        )
-        return
+    # Показываем выбор языка для всех пользователей при команде /start
+    await message.answer(
+        "🌍 <b>Выберите язык / Choose your language:</b>",
+        reply_markup=language_selection()
+    )
+    return
     
     # Безопасное извлечение имени пользователя
     safe_first_name = getattr(message.from_user, 'first_name', None) or "friend"
@@ -614,10 +613,10 @@ async def callback_handler(callback: types.CallbackQuery):
             reply_markup=main_menu(user_language)
         )
         
-        # Показываем кнопки ориентации
+        # Показываем inline меню с основными функциями
         await callback.message.answer(
-            get_text(user_language, "choose_orientation"),
-            reply_markup=orientation_menu(user_language)
+            get_text(user_language, "choose_action"),
+            reply_markup=quick_menu_inline(user_language)
         )
         
         await callback.answer()
