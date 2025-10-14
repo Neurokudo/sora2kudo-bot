@@ -890,29 +890,42 @@ async def send_foreign_tariffs(message: types.Message, user_language: str):
 
 async def handle_profile(message: types.Message, user_language: str):
     """Обработка кнопки 'Кабинет'"""
-    user_id = message.from_user.id
-    user = await get_user(user_id)
-    
-    if not user:
-        await message.answer(get_text(user_language, "error_getting_data"))
-        return
-    
-    # Безопасное извлечение имени
-    safe_name = user.get('first_name') or getattr(message.from_user, 'first_name', None) or "Not specified"
-    
-    profile_text = get_text(
-        user_language,
-        "profile",
-        name=safe_name,
-        plan=user['plan_name'],
-        videos_left=user['videos_left'],
-        date=user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
-    )
-    
-    # Создаем inline клавиатуру с кнопками покупки тарифов
-    tariff_buttons = tariff_selection(user_language)
-    
-    await message.answer(profile_text, reply_markup=tariff_buttons)
+    try:
+        user_id = message.from_user.id
+        user = await get_user(user_id)
+        
+        if not user:
+            await message.answer(get_text(user_language, "error_getting_data"))
+            return
+        
+        # Безопасное извлечение имени
+        safe_name = user.get('first_name') or getattr(message.from_user, 'first_name', None) or "Not specified"
+        
+        # Безопасное извлечение даты
+        try:
+            date_str = user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
+        except:
+            date_str = "Unknown"
+        
+        profile_text = get_text(
+            user_language,
+            "profile",
+            name=safe_name,
+            plan=user['plan_name'],
+            videos_left=user['videos_left'],
+            date=date_str
+        )
+        
+        # Создаем inline клавиатуру с кнопками покупки тарифов
+        tariff_buttons = tariff_selection(user_language)
+        
+        await message.answer(profile_text, reply_markup=tariff_buttons)
+        
+    except Exception as e:
+        logging.error(f"❌ Error in handle_profile for user {user_id}: {e}")
+        # Fallback сообщение
+        fallback_text = f"💰 <b>Profile</b>\n\n👤 Name: <b>{safe_name}</b>\n📦 Plan: <b>{user.get('plan_name', 'Unknown')}</b>\n🎞 Videos left: <b>{user.get('videos_left', 0)}</b>\n📅 Registration: <b>{date_str}</b>"
+        await message.answer(fallback_text, parse_mode="HTML")
 
 async def handle_video_description(message: types.Message, user_language: str):
     """Обработка описания видео"""
