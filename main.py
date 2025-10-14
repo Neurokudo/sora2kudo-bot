@@ -1264,9 +1264,11 @@ async def tribute_subscription_webhook(request):
 
         # Соответствие товаров Tribute и количества видео
         product_map = {
-            "lEw": 3,   # Trial
-            "lEu": 10,  # Basic
-            "lEv": 30   # Premium
+            "lEw": 3,   # Trial (старый ID)
+            "lEu": 10,  # Basic (старый ID)
+            "lEv": 30,  # Premium (старый ID)
+            "83236": 3, # Trial (новый ID из Tribute)
+            # Добавьте сюда другие ID товаров по мере их обнаружения
         }
 
         # Обрабатываем события от Tribute
@@ -1295,6 +1297,8 @@ async def tribute_subscription_webhook(request):
                     logging.error(f"❌ Error sending confirmation: {e}")
             else:
                 logging.warning(f"⚠️ Unknown product_id: {product_id}")
+                logging.info(f"📋 Full payload for debugging: {payload}")
+                logging.info(f"🔍 Available product_ids in map: {list(product_map.keys())}")
                 
         elif event_name == "new_subscription":
             # Обработка подписок (если будете использовать)
