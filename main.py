@@ -60,9 +60,9 @@ tariff_videos = {
 }
 
 tariff_prices = {
-    "trial": 5,
-    "basic": 12,
-    "maximum": 25
+    "trial": 390,
+    "basic": 990,
+    "maximum": 2190
 }
 
 tariff_names = {
@@ -668,63 +668,19 @@ async def callback_handler(callback: types.CallbackQuery):
         await callback.answer()
         return
     
-    # Обработка покупки тарифов - теперь через Tribute
+    # Обработка покупки тарифов - основные тарифы через YooKassa
     elif callback.data == "buy_trial":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
-        
-        # Показываем ссылку на Tribute для Trial
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🌱 Trial — €5", url="https://web.tribute.tg/p/lEw")]
-        ])
-        
-        text = (
-            f"{get_text(user_language, 'payment_title', tariff='Trial')}\n\n"
-            f"{get_text(user_language, 'payment_amount', price=5)}\n"
-            f"{get_text(user_language, 'payment_videos', videos=3)}\n\n"
-            f"{get_text(user_language, 'payment_activation')}"
-        )
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
-        await callback.answer()
-        
+        await handle_payment(callback, "trial", tariff_prices["trial"], user_language)
     elif callback.data == "buy_basic":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
-        
-        # Показываем ссылку на Tribute для Basic
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="✨ Basic — €12", url="https://web.tribute.tg/p/lEu")]
-        ])
-        
-        text = (
-            f"{get_text(user_language, 'payment_title', tariff='Basic')}\n\n"
-            f"{get_text(user_language, 'payment_amount', price=12)}\n"
-            f"{get_text(user_language, 'payment_videos', videos=10)}\n\n"
-            f"{get_text(user_language, 'payment_activation')}"
-        )
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
-        await callback.answer()
-        
+        await handle_payment(callback, "basic", tariff_prices["basic"], user_language)
     elif callback.data == "buy_maximum":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
-        
-        # Показываем ссылку на Tribute для Maximum
-        keyboard = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="💎 Maximum — €25", url="https://web.tribute.tg/p/lEv")]
-        ])
-        
-        text = (
-            f"{get_text(user_language, 'payment_title', tariff='Maximum')}\n\n"
-            f"{get_text(user_language, 'payment_amount', price=25)}\n"
-            f"{get_text(user_language, 'payment_videos', videos=30)}\n\n"
-            f"{get_text(user_language, 'payment_activation')}"
-        )
-        
-        await callback.message.edit_text(text, reply_markup=keyboard)
-        await callback.answer()
+        await handle_payment(callback, "maximum", tariff_prices["maximum"], user_language)
     elif callback.data == "buy_foreign":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
@@ -1099,19 +1055,16 @@ async def handle_buy_tariff(message: types.Message, user_language: str):
         reply_markup=tariff_selection(user_language)
     )
 
-async def create_payment(user_id: int, tariff: str, price_eur: int, videos_count: int):
+async def create_payment(user_id: int, tariff: str, price: int, videos_count: int):
     """Создание платежа в YooKassa"""
     try:
-        # Конвертируем евро в рубли (примерный курс 1 EUR = 100 RUB)
-        price_rub = price_eur * 100
-        
         # Генерируем уникальный ID платежа
         payment_id = str(uuid.uuid4())
         
         # Создаем платеж
         payment = Payment.create({
             "amount": {
-                "value": str(price_rub),
+                "value": str(price),
                 "currency": "RUB"
             },
             "confirmation": {
@@ -1119,7 +1072,7 @@ async def create_payment(user_id: int, tariff: str, price_eur: int, videos_count
                 "return_url": f"{PUBLIC_URL}/payment_success"
             },
             "capture": True,
-            "description": f"Тариф {tariff} для SORA 2 бота - {videos_count} видео ({price_eur} EUR)",
+            "description": f"Тариф {tariff} для SORA 2 бота - {videos_count} видео",
             "metadata": {
                 "user_id": str(user_id),
                 "tariff": tariff,
@@ -1167,8 +1120,7 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
                 f"{get_text(user_language, 'payment_title', tariff=tariff_display_name)}\n\n"
                 f"{get_text(user_language, 'payment_amount', price=price)}\n"
                 f"{get_text(user_language, 'payment_videos', videos=videos_count)}\n\n"
-                f"{get_text(user_language, 'payment_activation')}\n\n"
-                f"{get_text(user_language, 'payment_note')}"
+                f"{get_text(user_language, 'payment_activation')}"
             )
             
             # Создаем inline кнопку для оплаты
