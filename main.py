@@ -659,6 +659,8 @@ async def callback_handler(callback: types.CallbackQuery):
             del user_pending_video[user_id]
         if user_id in user_waiting_for_edit:
             user_waiting_for_edit.remove(user_id)
+        if user_id in user_hint_messages:
+            del user_hint_messages[user_id]
         
         await callback.message.edit_text(
             get_text(user_language, "choose_action")
@@ -1034,7 +1036,7 @@ async def handle_video_description(message: types.Message, user_language: str):
     ])
     
     # Отправляем сообщение подтверждения
-    await message.answer(
+    confirmation_msg = await message.answer(
         get_text(
             user_language,
             "video_confirmation",
@@ -1044,6 +1046,15 @@ async def handle_video_description(message: types.Message, user_language: str):
         ),
         reply_markup=confirmation_keyboard
     )
+    
+    # Удаляем предыдущее сообщение с подсказкой (если есть)
+    try:
+        if user_id in user_hint_messages:
+            await bot.delete_message(user_id, user_hint_messages[user_id])
+            del user_hint_messages[user_id]
+            logging.info(f"✅ Deleted hint message for user {user_id}")
+    except Exception as e:
+        logging.warning(f"⚠️ Could not delete hint message for user {user_id}: {e}")
 
 async def create_video_confirmed(user_id: int, description: str, user_language: str, callback: types.CallbackQuery = None):
     """Создание видео после подтверждения"""
