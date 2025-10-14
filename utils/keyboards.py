@@ -46,6 +46,12 @@ def orientation_menu(language: str = "en") -> InlineKeyboardMarkup:
                 text=get_text(language, "orientation_horizontal"), 
                 callback_data="orientation_horizontal"
             )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_main_menu"), 
+                callback_data="main_menu"
+            )
         ]
     ])
     return markup
