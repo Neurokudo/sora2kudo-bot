@@ -668,19 +668,63 @@ async def callback_handler(callback: types.CallbackQuery):
         await callback.answer()
         return
     
-    # Обработка покупки тарифов
+    # Обработка покупки тарифов - теперь через Tribute
     elif callback.data == "buy_trial":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
-        await handle_payment(callback, "trial", tariff_prices["trial"], user_language)
+        
+        # Показываем ссылку на Tribute для Trial
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🌱 Trial — €5", url="https://web.tribute.tg/p/lEw")]
+        ])
+        
+        text = (
+            f"{get_text(user_language, 'payment_title', tariff='Trial')}\n\n"
+            f"{get_text(user_language, 'payment_amount', price=5)}\n"
+            f"{get_text(user_language, 'payment_videos', videos=3)}\n\n"
+            f"{get_text(user_language, 'payment_activation')}"
+        )
+        
+        await callback.message.edit_text(text, reply_markup=keyboard)
+        await callback.answer()
+        
     elif callback.data == "buy_basic":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
-        await handle_payment(callback, "basic", tariff_prices["basic"], user_language)
+        
+        # Показываем ссылку на Tribute для Basic
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✨ Basic — €12", url="https://web.tribute.tg/p/lEu")]
+        ])
+        
+        text = (
+            f"{get_text(user_language, 'payment_title', tariff='Basic')}\n\n"
+            f"{get_text(user_language, 'payment_amount', price=12)}\n"
+            f"{get_text(user_language, 'payment_videos', videos=10)}\n\n"
+            f"{get_text(user_language, 'payment_activation')}"
+        )
+        
+        await callback.message.edit_text(text, reply_markup=keyboard)
+        await callback.answer()
+        
     elif callback.data == "buy_maximum":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
-        await handle_payment(callback, "maximum", tariff_prices["maximum"], user_language)
+        
+        # Показываем ссылку на Tribute для Maximum
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="💎 Maximum — €25", url="https://web.tribute.tg/p/lEv")]
+        ])
+        
+        text = (
+            f"{get_text(user_language, 'payment_title', tariff='Maximum')}\n\n"
+            f"{get_text(user_language, 'payment_amount', price=25)}\n"
+            f"{get_text(user_language, 'payment_videos', videos=30)}\n\n"
+            f"{get_text(user_language, 'payment_activation')}"
+        )
+        
+        await callback.message.edit_text(text, reply_markup=keyboard)
+        await callback.answer()
     elif callback.data == "buy_foreign":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'

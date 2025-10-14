@@ -140,8 +140,8 @@ LANG = {
         "foreign_card_title": "💰 <b>Choose your plan:</b>",
         "foreign_card_description": "🌍 Payment works worldwide — Tribute automatically converts the price to your local currency.\n\nAfter payment, your account in @sora2kudo_bot will be updated automatically 🎬",
         "foreign_trial": "Trial",
-        "foreign_basic": "Basic",
-        "foreign_premium": "Premium",
+        "foreign_basic": "Basic", 
+        "foreign_premium": "Maximum",
         "videos": "videos",
         
                 # Сообщения для пользователей без тарифа
@@ -211,7 +211,7 @@ LANG = {
         "foreign_card_description": "🌍 El pago funciona en todo el mundo — Tribute convierte automáticamente el precio a tu moneda local.\n\nDespués del pago, tu cuenta en @sora2kudo_bot se actualizará automáticamente 🎬",
         "foreign_trial": "Prueba",
         "foreign_basic": "Básico",
-        "foreign_premium": "Premium",
+        "foreign_premium": "Máximo",
         "videos": "videos",
         
         # Общие фразы
@@ -277,7 +277,7 @@ LANG = {
         "foreign_card_description": "🌍 الدفع يعمل في جميع أنحاء العالم — Tribute يحول السعر تلقائياً إلى عملتك المحلية.\n\nبعد الدفع، سيتم تحديث حسابك في @sora2kudo_bot تلقائياً 🎬",
         "foreign_trial": "تجريبي",
         "foreign_basic": "أساسي",
-        "foreign_premium": "مميز",
+        "foreign_premium": "قصوى",
         "videos": "فيديو",
         
         # Общие фразы
@@ -343,7 +343,7 @@ LANG = {
         "foreign_card_description": "🌍 भुगतान दुनिया भर में काम करता है — Tribute आपकी स्थानीय मुद्रा में कीमत को स्वचालित रूप से परिवर्तित करता है।\n\nभुगतान के बाद, @sora2kudo_bot में आपका खाता स्वचालित रूप से अपडेट हो जाएगा 🎬",
         "foreign_trial": "ट्रायल",
         "foreign_basic": "बेसिक",
-        "foreign_premium": "प्रीमियम",
+        "foreign_premium": "मैक्स",
         "videos": "वीडियो",
         
         # Общие фразы
