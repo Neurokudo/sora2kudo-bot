@@ -1274,10 +1274,14 @@ async def tribute_subscription_webhook(request):
 
         # Соответствие товаров Tribute и количества видео
         # Настоящие product_id из ссылок Tribute: https://web.tribute.tg/p/lEw
+        # Но Tribute отправляет числовые ID в webhook'ах
         product_map = {
             "lEw": 3,   # Trial ($5) - https://web.tribute.tg/p/lEw
             "lEu": 10,  # Basic ($12) - https://web.tribute.tg/p/lEu  
-            "lEv": 30   # Premium ($25) - https://web.tribute.tg/p/lEv
+            "lEv": 30,  # Premium ($25) - https://web.tribute.tg/p/lEv
+            "83236": 3, # Trial (числовой ID из webhook)
+            "83237": 10, # Basic (предполагаемый числовой ID)
+            "83238": 30  # Premium (предполагаемый числовой ID)
         }
 
         # Обрабатываем события от Tribute
@@ -1292,8 +1296,9 @@ async def tribute_subscription_webhook(request):
                 logging.error("❌ Missing telegram_user_id in payload")
                 return web.Response(text="Missing user", status=400)
 
-            # Получаем название продукта для fallback-логики
+            # Получаем данные для fallback-логики
             product_name = payload.get("product_name", "").lower().strip()
+            amount = payload.get("amount", 0)
             
             # Основная карта по product_id
             videos_count = product_map.get(product_id)
@@ -1305,6 +1310,15 @@ async def tribute_subscription_webhook(request):
                 elif "basic" in product_name or "базовый" in product_name:
                     videos_count = 10
                 elif "premium" in product_name or "maximum" in product_name or "премиум" in product_name:
+                    videos_count = 30
+            
+            # Fallback по сумме (если название пустое)
+            if not videos_count and amount > 0:
+                if amount == 500:  # $5 = Trial
+                    videos_count = 3
+                elif amount == 1200:  # $12 = Basic
+                    videos_count = 10
+                elif amount == 2500:  # $25 = Premium
                     videos_count = 30
             
             if videos_count:
@@ -1319,10 +1333,11 @@ async def tribute_subscription_webhook(request):
                 except Exception as e:
                     logging.error(f"❌ Error sending confirmation: {e}")
             else:
-                # Если всё ещё неизвестно — логируем оба параметра
-                logging.warning(f"⚠️ Unknown product_id: {product_id}, name: '{product_name}'")
+                # Если всё ещё неизвестно — логируем все параметры
+                logging.warning(f"⚠️ Unknown product_id: {product_id}, name: '{product_name}', amount: {amount}")
                 logging.info(f"📋 Full payload for debugging: {payload}")
                 logging.info(f"🔍 Available product_ids in map: {list(product_map.keys())}")
+                logging.info(f"💰 Amount-based fallback: 500→3, 1200→10, 2500→30")
                 
         elif event_name == "new_subscription":
             # Обработка подписок (если будете использовать)
