@@ -16,7 +16,7 @@ from yookassa import Configuration, Payment
 
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
-from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
+from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, quick_menu_inline
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
 from tribute_subscription import create_subscription, get_tariff_info
 
@@ -663,9 +663,85 @@ async def callback_handler(callback: types.CallbackQuery):
             del user_hint_messages[user_id]
         
         await callback.message.edit_text(
-            get_text(user_language, "choose_action")
+            get_text(user_language, "choose_action"),
+            reply_markup=quick_menu_inline(user_language)
         )
         
+        await callback.answer()
+        return
+    
+    # Обработка кнопок упрощенного inline меню
+    elif callback.data == "create_video":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        await callback.message.edit_text(
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language)
+        )
+        await callback.answer()
+        return
+    
+    elif callback.data == "examples":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        markup = build_categories_keyboard(0)
+        text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
+        await callback.message.edit_text(text, reply_markup=markup)
+        await callback.answer()
+        return
+    
+    elif callback.data == "profile":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        try:
+            if not user:
+                await callback.message.edit_text(get_text(user_language, "error_getting_data"))
+                return
+            
+            # Безопасное извлечение имени
+            safe_name = user.get('first_name') or "Not specified"
+            
+            # Безопасное извлечение даты
+            try:
+                date_str = user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
+            except:
+                date_str = "Unknown"
+            
+            profile_text = get_text(
+                user_language,
+                "profile",
+                name=safe_name,
+                plan=user['plan_name'],
+                videos_left=user['videos_left'],
+                date=date_str
+            )
+            
+            # Создаем inline клавиатуру с кнопками покупки тарифов
+            tariff_buttons = tariff_selection(user_language)
+            
+            await callback.message.edit_text(profile_text, reply_markup=tariff_buttons)
+            
+        except Exception as e:
+            logging.error(f"❌ Error in profile callback for user {user_id}: {e}")
+            await callback.message.edit_text(get_text(user_language, "error_getting_data"))
+        
+        await callback.answer()
+        return
+    
+    elif callback.data == "help":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        logging.info(f"🆘 User {user_id} clicked Help button. Adding to support queue.")
+        user_waiting_for_support.add(user_id)
+        
+        await callback.message.edit_text(
+            get_text(user_language, "help_text"),
+            reply_markup=quick_menu_inline(user_language)
+        )
         await callback.answer()
         return
     
@@ -1157,6 +1233,8 @@ async def create_video_confirmed(user_id: int, description: str, user_language: 
         del user_waiting_for_video_orientation[user_id]
     if user_id in user_pending_video:
         del user_pending_video[user_id]
+    if user_id in user_hint_messages:
+        del user_hint_messages[user_id]
 
 async def cmd_help(message: types.Message, user_language: str):
     """Обработка команды /help"""
@@ -1357,7 +1435,16 @@ async def yookassa_webhook(request):
             # Отправляем уведомление пользователю
             try:
                 success_text = f"✅ <b>Оплата прошла успешно!</b>\n\n🎬 Тариф: <b>{tariff_name}</b>\n🎞 Видео: <b>{videos_count}</b>\n💰 Сумма: <b>{amount} ₽</b>\n\n🎉 Теперь вы можете создавать видео!"
-                await bot.send_message(user_id, success_text)
+                
+                # Получаем язык пользователя для кнопки
+                user = await get_user(user_id)
+                user_language = user.get('language', 'en') if user else 'en'
+                
+                await bot.send_message(
+                    user_id, 
+                    success_text,
+                    reply_markup=quick_menu_inline(user_language)
+                )
                 logging.info(f"💳 Success message sent to user {user_id}")
             except Exception as e:
                 logging.error(f"❌ Error sending success message to user {user_id}: {e}")
@@ -1394,9 +1481,14 @@ async def tribute_webhook(request):
                 
                 # Отправляем подтверждение пользователю
                 try:
+                    # Получаем язык пользователя для кнопки
+                    user = await get_user(telegram_user_id)
+                    user_language = user.get('language', 'en') if user else 'en'
+                    
                     await bot.send_message(
                         telegram_user_id,
-                        f"🎉 <b>Оплата прошла успешно!</b>\n\n✅ Тариф активирован\n🎬 Видео на балансе: {videos_to_add}\n\nСпасибо за покупку!"
+                        f"🎉 <b>Оплата прошла успешно!</b>\n\n✅ Тариф активирован\n🎬 Видео на балансе: {videos_to_add}\n\nСпасибо за покупку!",
+                        reply_markup=quick_menu_inline(user_language)
                     )
                     logging.info(f"✅ Tribute donation processed for user {telegram_user_id}")
                 except Exception as e:
@@ -1508,9 +1600,14 @@ async def tribute_subscription_webhook(request):
                 success = await add_user_videos(telegram_user_id, videos_count)
                 if success:
                     try:
+                        # Получаем язык пользователя для кнопки
+                        user = await get_user(telegram_user_id)
+                        user_language = user.get('language', 'en') if user else 'en'
+                        
                         await bot.send_message(
                             telegram_user_id,
-                            f"✅ <b>Your plan is activated!</b> {videos_count} videos added to your balance 🎬"
+                            f"✅ <b>Your plan is activated!</b> {videos_count} videos added to your balance 🎬",
+                            reply_markup=quick_menu_inline(user_language)
                         )
                         logging.info(f"✅ Tribute digital product activated for user {telegram_user_id} - {videos_count} videos")
                     except Exception as e:
