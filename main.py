@@ -1055,16 +1055,19 @@ async def handle_buy_tariff(message: types.Message, user_language: str):
         reply_markup=tariff_selection(user_language)
     )
 
-async def create_payment(user_id: int, tariff: str, price: int, videos_count: int):
+async def create_payment(user_id: int, tariff: str, price_eur: int, videos_count: int):
     """Создание платежа в YooKassa"""
     try:
+        # Конвертируем евро в рубли (примерный курс 1 EUR = 100 RUB)
+        price_rub = price_eur * 100
+        
         # Генерируем уникальный ID платежа
         payment_id = str(uuid.uuid4())
         
         # Создаем платеж
         payment = Payment.create({
             "amount": {
-                "value": str(price),
+                "value": str(price_rub),
                 "currency": "RUB"
             },
             "confirmation": {
@@ -1072,7 +1075,7 @@ async def create_payment(user_id: int, tariff: str, price: int, videos_count: in
                 "return_url": f"{PUBLIC_URL}/payment_success"
             },
             "capture": True,
-            "description": f"Тариф {tariff} для SORA 2 бота - {videos_count} видео",
+            "description": f"Тариф {tariff} для SORA 2 бота - {videos_count} видео ({price_eur} EUR)",
             "metadata": {
                 "user_id": str(user_id),
                 "tariff": tariff,
@@ -1120,7 +1123,8 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
                 f"{get_text(user_language, 'payment_title', tariff=tariff_display_name)}\n\n"
                 f"{get_text(user_language, 'payment_amount', price=price)}\n"
                 f"{get_text(user_language, 'payment_videos', videos=videos_count)}\n\n"
-                f"{get_text(user_language, 'payment_activation')}"
+                f"{get_text(user_language, 'payment_activation')}\n\n"
+                f"{get_text(user_language, 'payment_note')}"
             )
             
             # Создаем inline кнопку для оплаты
