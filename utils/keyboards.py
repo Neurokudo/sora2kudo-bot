@@ -12,7 +12,8 @@ def main_menu(language: str = "en") -> ReplyKeyboardMarkup:
         [KeyboardButton(text=get_text(language, "btn_examples")), 
          KeyboardButton(text=get_text(language, "btn_profile"))],
         [KeyboardButton(text=get_text(language, "btn_help")),
-         KeyboardButton(text=get_text(language, "btn_language"))]
+         KeyboardButton(text=get_text(language, "btn_language"))],
+        [KeyboardButton(text=get_text(language, "btn_instructions"))]
     ]
     return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
 
