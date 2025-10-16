@@ -5,16 +5,37 @@
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton, InlineKeyboardMarkup, InlineKeyboardButton
 from translations import get_text, LANGUAGE_BUTTONS
 
-def main_menu(language: str = "en") -> ReplyKeyboardMarkup:
-    """Главное меню с учетом языка"""
-    kb = [
-        [KeyboardButton(text=get_text(language, "btn_create_video"))],
-        [KeyboardButton(text=get_text(language, "btn_examples")), 
-         KeyboardButton(text=get_text(language, "btn_profile"))],
-        [KeyboardButton(text=get_text(language, "btn_help")),
-         KeyboardButton(text=get_text(language, "btn_language"))]
-    ]
-    return ReplyKeyboardMarkup(keyboard=kb, resize_keyboard=True)
+def main_menu(language: str = "en") -> InlineKeyboardMarkup:
+    """Главное меню (inline) с учетом языка"""
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_create_video"),
+                callback_data="menu_create_video"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_examples"),
+                callback_data="menu_examples"
+            ),
+            InlineKeyboardButton(
+                text=get_text(language, "btn_profile"),
+                callback_data="menu_profile"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_help"),
+                callback_data="menu_help"
+            ),
+            InlineKeyboardButton(
+                text=get_text(language, "btn_language"),
+                callback_data="menu_language"
+            )
+        ]
+    ])
+    return markup
 
 def language_selection() -> InlineKeyboardMarkup:
     """Клавиатура выбора языка"""
@@ -80,6 +101,12 @@ def tariff_selection(language: str = "en") -> InlineKeyboardMarkup:
             InlineKeyboardButton(
                 text=get_text(language, "btn_buy_foreign"), 
                 callback_data="buy_foreign"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_main_menu"),
+                callback_data="main_menu"
             )
         ]
     ])

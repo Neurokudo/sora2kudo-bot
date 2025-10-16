@@ -392,30 +392,6 @@ user_example_for_creation = {}  # {user_id: description} - пример для �
 # Сообщения задач для удаления при получении видео
 user_task_messages = {}  # {user_id: message_id} - сообщения "Задача отправлена в Sora 2!"
 
-# === EXAMPLES: CATEGORY PAGINATION ===
-CATEGORIES_PER_PAGE = 6
-
-def build_categories_keyboard(page: int = 0) -> InlineKeyboardMarkup:
-    categories = get_categories()
-    start = page * CATEGORIES_PER_PAGE
-    end = start + CATEGORIES_PER_PAGE
-    page_items = categories[start:end]
-
-    keyboard: list[list[InlineKeyboardButton]] = []
-    for category_key in page_items:
-        category_name = get_category_name(category_key)
-        keyboard.append([InlineKeyboardButton(text=category_name, callback_data=f"category_{category_key}")])
-
-    nav_row: list[InlineKeyboardButton] = []
-    if start > 0:
-        nav_row.append(InlineKeyboardButton(text="⏪", callback_data=f"catpage_{page-1}"))
-    if end < len(categories):
-        nav_row.append(InlineKeyboardButton(text="⏩", callback_data=f"catpage_{page+1}"))
-    if nav_row:
-        keyboard.append(nav_row)
-
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
 # === MAIN MENU ===
 # Функции меню перенесены в utils/keyboards.py
 
@@ -532,6 +508,83 @@ async def cmd_buy(message: types.Message):
 async def callback_handler(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     
+    # Обработка кнопок главного меню
+    if callback.data == "menu_create_video":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        await callback.message.edit_text(
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language)
+        )
+        await callback.answer()
+        return
+    
+    elif callback.data == "menu_examples":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        # Проверяем, есть ли у пользователя оплаченная подписка
+        if not user or user.get('plan_name') == 'Без тарифа' or user.get('videos_left', 0) <= 0:
+            await callback.message.edit_text(
+                get_text(user_language, "examples_subscription_required"),
+                reply_markup=tariff_selection(user_language),
+                parse_mode="HTML"
+            )
+        else:
+            markup = build_categories_keyboard(0, user_language)
+            text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
+            await callback.message.edit_text(text, reply_markup=markup, parse_mode="HTML")
+        await callback.answer()
+        return
+    
+    elif callback.data == "menu_profile":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        if not user:
+            await callback.message.edit_text(get_text(user_language, "error_getting_data"))
+            await callback.answer()
+            return
+        
+        safe_name = user.get('first_name') or getattr(callback.from_user, 'first_name', None) or "Not specified"
+        
+        try:
+            date_str = user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
+        except:
+            date_str = "Unknown"
+        
+        profile_text = get_text(
+            user_language,
+            "profile",
+            name=safe_name,
+            plan=user['plan_name'],
+            videos_left=user['videos_left'],
+            date=date_str
+        )
+        
+        await callback.message.edit_text(profile_text, reply_markup=tariff_selection(user_language))
+        await callback.answer()
+        return
+    
+    elif callback.data == "menu_help":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        user_waiting_for_support.add(user_id)
+        await callback.message.edit_text(
+            get_text(user_language, "help_text"),
+            reply_markup=main_menu(user_language)
+        )
+        await callback.answer()
+        return
+    
+    elif callback.data == "menu_language":
+        await callback.message.edit_text(
+            get_text('en', "choose_language"),
+            reply_markup=language_selection()
+        )
+        await callback.answer()
+        return
+    
     # Обработка выбора языка
     if callback.data.startswith("lang_"):
         language = callback.data.replace("lang_", "")
@@ -630,11 +683,8 @@ async def callback_handler(callback: types.CallbackQuery):
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
         
-        # Удаляем сообщение с меню ориентации
-        await callback.message.delete()
-        
-        # Отправляем главное меню
-        await callback.message.answer(
+        # Показываем главное меню (inline)
+        await callback.message.edit_text(
             get_text(user_language, "choose_action"),
             reply_markup=main_menu(user_language)
         )
@@ -657,7 +707,32 @@ async def callback_handler(callback: types.CallbackQuery):
     elif callback.data == "buy_foreign":
         user = await get_user(user_id)
         user_language = user.get('language', 'en') if user else 'en'
-        await send_foreign_tariffs(callback.message, user_language)
+        
+        # Получаем переводы названий тарифов и слова "видео"
+        trial_name = get_text(user_language, 'foreign_trial')
+        basic_name = get_text(user_language, 'foreign_basic')
+        premium_name = get_text(user_language, 'foreign_premium')
+        videos_word = get_text(user_language, 'videos')
+        
+        keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text=f"🌱 {trial_name} — 3 {videos_word} — €5", url="https://web.tribute.tg/p/lEw")],
+            [InlineKeyboardButton(text=f"✨ {basic_name} — 10 {videos_word} — €12", url="https://web.tribute.tg/p/lEu")],
+            [InlineKeyboardButton(text=f"💎 {premium_name} — 30 {videos_word} — €25", url="https://web.tribute.tg/p/lEv")],
+            [InlineKeyboardButton(
+                text=get_text(user_language, "btn_main_menu"),
+                callback_data="main_menu"
+            )]
+        ])
+        
+        text = (
+            f"{get_text(user_language, 'foreign_card_title')}\n\n"
+            f"🌱 <b>{trial_name}</b> — 3 {videos_word} — €5\n"
+            f"✨ <b>{basic_name}</b> — 10 {videos_word} — €12\n"
+            f"💎 <b>{premium_name}</b> — 30 {videos_word} — €25\n\n"
+            f"{get_text(user_language, 'foreign_card_description')}"
+        )
+        
+        await callback.message.edit_text(text, reply_markup=keyboard, parse_mode="HTML")
         await callback.answer()
         return
     
@@ -785,37 +860,17 @@ async def handle_text(message: types.Message):
     user = await get_user(user_id)
     user_language = user.get('language', 'en') if user else 'en'
     
-    # Обработка кнопок меню (с учетом языка)
-    if text in [get_text(lang, "btn_create_video") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        # Показываем выбор ориентации
-        await message.answer(
-            get_text(user_language, "choose_orientation"),
-            reply_markup=orientation_menu(user_language)
-        )
-    elif text in [get_text(lang, "btn_examples") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        await handle_examples(message, user_language)
-    elif text in [get_text(lang, "btn_profile") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        await handle_profile(message, user_language)
-    elif text in [get_text(lang, "btn_help") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        await cmd_help(message, user_language)
-    elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        await handle_language_selection(message)
-    elif text in [get_text(lang, "btn_buy_foreign") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        await send_foreign_tariffs(message, user_language)
-    elif text in [get_text(lang, "btn_buy_tariff") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        await handle_buy_tariff(message, user_language)
+    # Если пользователь выбрал ориентацию, то это описание для видео
+    if user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
+        await handle_video_description(message, user_language)
     else:
-        # Если пользователь выбрал ориентацию, то это описание для видео
-        if user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
-            await handle_video_description(message, user_language)
-        else:
-            await message.answer(
-                get_text(user_language, "use_buttons"),
-                reply_markup=main_menu(user_language)
-            )
+        await message.answer(
+            get_text(user_language, "use_buttons"),
+            reply_markup=main_menu(user_language)
+        )
 
 async def handle_examples(message: types.Message, user_language: str):
-    """Обработка кнопки 'Примеры' - показывает категории"""
+    """Обработка команды /examples - показывает категории"""
     user_id = message.from_user.id
     user = await get_user(user_id)
     
@@ -824,14 +879,15 @@ async def handle_examples(message: types.Message, user_language: str):
         # Показываем сообщение о необходимости подписки
         await message.answer(
             get_text(user_language, "examples_subscription_required"),
-            reply_markup=tariff_selection(user_language)
+            reply_markup=tariff_selection(user_language),
+            parse_mode="HTML"
         )
         return
     
     # Если подписка есть, показываем примеры
-    markup = build_categories_keyboard(0)
+    markup = build_categories_keyboard(0, user_language)
     text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
-    await message.answer(text, reply_markup=markup)
+    await message.answer(text, reply_markup=markup, parse_mode="HTML")
 
 async def send_foreign_tariffs(message: types.Message, user_language: str):
     """Показ тарифов Tribute для иностранных пользователей"""
@@ -844,7 +900,11 @@ async def send_foreign_tariffs(message: types.Message, user_language: str):
     keyboard = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text=f"🌱 {trial_name} — 3 {videos_word} — €5", url="https://web.tribute.tg/p/lEw")],
         [InlineKeyboardButton(text=f"✨ {basic_name} — 10 {videos_word} — €12", url="https://web.tribute.tg/p/lEu")],
-        [InlineKeyboardButton(text=f"💎 {premium_name} — 30 {videos_word} — €25", url="https://web.tribute.tg/p/lEv")]
+        [InlineKeyboardButton(text=f"💎 {premium_name} — 30 {videos_word} — €25", url="https://web.tribute.tg/p/lEv")],
+        [InlineKeyboardButton(
+            text=get_text(user_language, "btn_main_menu"),
+            callback_data="main_menu"
+        )]
     ])
     
     text = (
@@ -862,7 +922,7 @@ async def send_foreign_tariffs(message: types.Message, user_language: str):
     )
 
 async def handle_profile(message: types.Message, user_language: str):
-    """Обработка кнопки 'Кабинет'"""
+    """Обработка команды /profile"""
     try:
         user_id = message.from_user.id
         user = await get_user(user_id)
@@ -892,7 +952,7 @@ async def handle_profile(message: types.Message, user_language: str):
         # Создаем inline клавиатуру с кнопками покупки тарифов
         tariff_buttons = tariff_selection(user_language)
         
-        await message.answer(profile_text, reply_markup=tariff_buttons)
+        await message.answer(profile_text, reply_markup=tariff_buttons, parse_mode="HTML")
         
     except Exception as e:
         logging.error(f"❌ Error in handle_profile for user {user_id}: {e}")
@@ -1010,22 +1070,25 @@ async def cmd_help(message: types.Message, user_language: str):
     logging.info(f"🆘 Users waiting for support: {user_waiting_for_support}")
     await message.answer(
         get_text(user_language, "help_text"),
-        reply_markup=main_menu(user_language)
+        reply_markup=main_menu(user_language),
+        parse_mode="HTML"
     )
 
 async def handle_language_selection(message: types.Message):
-    """Обработка кнопки выбора языка"""
+    """Обработка команды /language"""
     await message.answer(
         get_text('en', "choose_language"),  # Показываем на английском
-        reply_markup=language_selection()
+        reply_markup=language_selection(),
+        parse_mode="HTML"
     )
 
 async def handle_buy_tariff(message: types.Message, user_language: str):
-    """Обработка кнопки покупки тарифа"""
+    """Обработка команды /buy"""
     tariff_text = get_text(user_language, "tariff_selection")
     await message.answer(
         tariff_text,
-        reply_markup=tariff_selection(user_language)
+        reply_markup=tariff_selection(user_language),
+        parse_mode="HTML"
     )
 
 async def create_payment(user_id: int, tariff: str, price: int, videos_count: int):
@@ -1074,7 +1137,12 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
             f"{get_text(user_language, 'payment_videos', videos=videos_count)}\n\n"
             f"{get_text(user_language, 'payment_unavailable')}"
         )
-        await callback.message.edit_text(payment_text)
+        # Кнопки возврата
+        back_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔙 Назад к тарифам", callback_data="menu_profile")],
+            [InlineKeyboardButton(text=get_text(user_language, "btn_main_menu"), callback_data="main_menu")]
+        ])
+        await callback.message.edit_text(payment_text, reply_markup=back_keyboard, parse_mode="HTML")
         await callback.answer()
         return
     
@@ -1096,20 +1164,32 @@ async def handle_payment(callback: types.CallbackQuery, tariff: str, price: int,
                 f"{get_text(user_language, 'payment_activation')}"
             )
             
-            # Создаем inline кнопку для оплаты
+            # Создаем inline кнопки для оплаты и возврата
             pay_button = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text=get_text(user_language, 'payment_button'), url=payment_url)]
+                [InlineKeyboardButton(text=get_text(user_language, 'payment_button'), url=payment_url)],
+                [InlineKeyboardButton(text="🔙 Назад к тарифам", callback_data="menu_profile")],
+                [InlineKeyboardButton(text=get_text(user_language, "btn_main_menu"), callback_data="main_menu")]
             ])
             
-            await callback.message.edit_text(payment_text, reply_markup=pay_button)
+            await callback.message.edit_text(payment_text, reply_markup=pay_button, parse_mode="HTML")
             await callback.answer()
         else:
-            await callback.message.edit_text(get_text(user_language, 'payment_error'))
+            # Кнопка возврата при ошибке
+            error_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="🔙 Назад к тарифам", callback_data="menu_profile")],
+                [InlineKeyboardButton(text=get_text(user_language, "btn_main_menu"), callback_data="main_menu")]
+            ])
+            await callback.message.edit_text(get_text(user_language, 'payment_error'), reply_markup=error_keyboard, parse_mode="HTML")
             await callback.answer()
             
     except Exception as e:
         logging.error(f"❌ Error in handle_payment: {e}")
-        await callback.message.edit_text(get_text(user_language, 'payment_error'))
+        # Кнопка возврата при ошибке
+        error_keyboard = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="🔙 Назад к тарифам", callback_data="menu_profile")],
+            [InlineKeyboardButton(text=get_text(user_language, "btn_main_menu"), callback_data="main_menu")]
+        ])
+        await callback.message.edit_text(get_text(user_language, 'payment_error'), reply_markup=error_keyboard, parse_mode="HTML")
         await callback.answer()
 
 async def handle_foreign_payment(callback: types.CallbackQuery, user_language: str):
@@ -1591,7 +1671,7 @@ def create_app():
 
 # === EXAMPLES SYSTEM FUNCTIONS ===
 
-def build_categories_keyboard(page: int = 0):
+def build_categories_keyboard(page: int = 0, language: str = 'ru'):
     """Создает клавиатуру с пагинацией разделов (6+6+6+2)"""
     categories = get_categories()
     categories_per_page = [6, 6, 6, 2]  # 6+6+6+2 = 20 кнопок
@@ -1627,13 +1707,21 @@ def build_categories_keyboard(page: int = 0):
     if nav_buttons:
         keyboard.append(nav_buttons)
     
+    # Добавляем кнопку "Главное меню"
+    keyboard.append([InlineKeyboardButton(
+        text=get_text(language, "btn_main_menu"),
+        callback_data="main_menu"
+    )])
+    
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 async def show_categories(callback: types.CallbackQuery, page: int = 0):
     """Показать категории примеров с пагинацией"""
-    markup = build_categories_keyboard(page)
+    user = await get_user(callback.from_user.id)
+    user_language = user.get('language', 'ru') if user else 'ru'
+    markup = build_categories_keyboard(page, user_language)
     text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
-    await callback.message.edit_text(text, reply_markup=markup)
+    await callback.message.edit_text(text, reply_markup=markup, parse_mode="HTML")
 
 async def show_example(callback: types.CallbackQuery, category_key: str, index: int):
     """Показать конкретный пример с навигацией"""
@@ -1649,6 +1737,10 @@ async def show_example(callback: types.CallbackQuery, category_key: str, index: 
     example = examples[index]
     category_name = get_category_name(category_key)
     
+    # Получаем язык пользователя
+    user = await get_user(callback.from_user.id)
+    user_language = user.get('language', 'ru') if user else 'ru'
+    
     # Создаем навигационные кнопки
     keyboard = [
         [
@@ -1656,14 +1748,18 @@ async def show_example(callback: types.CallbackQuery, category_key: str, index: 
             InlineKeyboardButton(text="▶️ Создать", callback_data="example_create_video"),
             InlineKeyboardButton(text="⏩ Далее", callback_data="example_next")
         ],
-        [InlineKeyboardButton(text="⏹️ Другой раздел", callback_data="example_back_to_categories")]
+        [InlineKeyboardButton(text="⏹️ Другой раздел", callback_data="example_back_to_categories")],
+        [InlineKeyboardButton(
+            text=get_text(user_language, "btn_main_menu"),
+            callback_data="main_menu"
+        )]
     ]
     
     markup = InlineKeyboardMarkup(inline_keyboard=keyboard)
     
     text = f"📚 <b>{category_name}</b>\n\n<b>{example['title']}</b>\n\n<code>{example['description']}</code>\n\n<i>{index + 1} из {len(examples)}</i>"
     
-    await callback.message.edit_text(text, reply_markup=markup)
+    await callback.message.edit_text(text, reply_markup=markup, parse_mode="HTML")
 
 # === MAIN FUNCTION ===
 async def start_bot():
