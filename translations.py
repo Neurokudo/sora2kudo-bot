@@ -6,7 +6,7 @@
 LANG = {
     "ru": {
         # Основные сообщения
-        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🔥 <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>\n\n📖 <a href='https://disk.yandex.ru/i/INSTRUCTION_LINK'>Инструкция</a> — как пользоваться ботом",
+        "welcome": "👋 Привет, {name}! Это <b>SORA 2 от Neurokudo</b>.\n\n🎬 <b>Твой тариф:</b> {plan}\n🎞 <b>Осталось видео:</b> {videos_left}\n\n🔥 <b>Создавай крутые вирусные видео и радуй друзей и подписчиков!</b>\n\n📖 <a href='https://github.com/Neurokudo/sora2kudo-bot/blob/main/INSTRUCTION.md'>Инструкция</a> — как пользоваться ботом",
         "choose_action": "💡 <b>Выбери действие:</b>",
         "choose_language": "🌍 <b>Выберите язык:</b>",
         "lang_selected": "✅ <b>Язык изменён на Русский.</b>",
@@ -92,7 +92,7 @@ LANG = {
     
     "en": {
         # Основные сообщения
-        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🔥 <b>Create amazing viral videos and delight your friends and followers!</b>\n\n📖 <a href='https://disk.yandex.ru/i/INSTRUCTION_LINK'>Instruction</a> — how to use the bot",
+        "welcome": "👋 Hi, {name}! This is <b>SORA 2 by Neurokudo</b>.\n\n🎬 <b>Your tariff:</b> {plan}\n🎞 <b>Videos left:</b> {videos_left}\n\n🔥 <b>Create amazing viral videos and delight your friends and followers!</b>\n\n📖 <a href='https://github.com/Neurokudo/sora2kudo-bot/blob/main/INSTRUCTION.md'>Instruction</a> — how to use the bot",
         "choose_action": "💡 <b>Choose an action:</b>",
         "choose_language": "🌍 <b>Choose your language:</b>",
         "lang_selected": "✅ <b>Language set to English.</b>",
@@ -178,7 +178,7 @@ LANG = {
     
     "es": {
         # Основные сообщения
-        "welcome": "👋 ¡Hola, {name}! Este es <b>SORA 2 de Neurokudo</b>.\n\n🎬 <b>Tu plan:</b> {plan}\n🎞 <b>Videos restantes:</b> {videos_left}\n\n🔥 <b>¡Crea videos virales increíbles y deleita a tus amigos y seguidores!</b>\n\n📖 <a href='https://disk.yandex.ru/i/INSTRUCTION_LINK'>Instrucción</a> — cómo usar el bot",
+        "welcome": "👋 ¡Hola, {name}! Este es <b>SORA 2 de Neurokudo</b>.\n\n🎬 <b>Tu plan:</b> {plan}\n🎞 <b>Videos restantes:</b> {videos_left}\n\n🔥 <b>¡Crea videos virales increíbles y deleita a tus amigos y seguidores!</b>\n\n📖 <a href='https://github.com/Neurokudo/sora2kudo-bot/blob/main/INSTRUCTION.md'>Instrucción</a> — cómo usar el bot",
         "choose_action": "💡 <b>Elige una acción:</b>",
         "choose_language": "🌍 <b>Elige tu idioma:</b>",
         "lang_selected": "✅ <b>Idioma cambiado a Español.</b>",
@@ -264,7 +264,7 @@ LANG = {
     
     "ar": {
         # Основные сообщения
-        "welcome": "👋 مرحباً {name}! هذا هو <b>SORA 2 من Neurokudo</b>.\n\n🎬 <b>خطتك:</b> {plan}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\n🔥 <b>أنشئ فيديوهات فيروسية رائعة وأسعد أصدقاءك ومتابعيك!</b>\n\n📖 <a href='https://disk.yandex.ru/i/INSTRUCTION_LINK'>تعليمات</a> — كيفية استخدام البوت",
+        "welcome": "👋 مرحباً {name}! هذا هو <b>SORA 2 من Neurokudo</b>.\n\n🎬 <b>خطتك:</b> {plan}\n🎞 <b>الفيديوهات المتبقية:</b> {videos_left}\n\n🔥 <b>أنشئ فيديوهات فيروسية رائعة وأسعد أصدقاءك ومتابعيك!</b>\n\n📖 <a href='https://github.com/Neurokudo/sora2kudo-bot/blob/main/INSTRUCTION.md'>تعليمات</a> — كيفية استخدام البوت",
         "choose_action": "💡 <b>اختر إجراء:</b>",
         "choose_language": "🌍 <b>اختر لغتك:</b>",
         "lang_selected": "✅ <b>تم تغيير اللغة إلى العربية.</b>",
@@ -350,7 +350,7 @@ LANG = {
     
     "hi": {
         # Основные сообщения
-        "welcome": "👋 नमस्ते {name}! यह है <b>SORA 2 by Neurokudo</b>।\n\n🎬 <b>आपकी योजना:</b> {plan}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\n🔥 <b>अद्भुत वायरल वीडियो बनाएं और अपने दोस्तों और फॉलोअर्स को खुश करें!</b>\n\n📖 <a href='https://disk.yandex.ru/i/INSTRUCTION_LINK'>निर्देश</a> — बॉट का उपयोग कैसे करें",
+        "welcome": "👋 नमस्ते {name}! यह है <b>SORA 2 by Neurokudo</b>।\n\n🎬 <b>आपकी योजना:</b> {plan}\n🎞 <b>बचे वीडियो:</b> {videos_left}\n\n🔥 <b>अद्भुत वायरल वीडियो बनाएं और अपने दोस्तों और फॉलोअर्स को खुश करें!</b>\n\n📖 <a href='https://github.com/Neurokudo/sora2kudo-bot/blob/main/INSTRUCTION.md'>निर्देश</a> — बॉट का उपयोग कैसे करें",
         "choose_action": "💡 <b>एक क्रिया चुनें:</b>",
         "choose_language": "🌍 <b>अपनी भाषा चुनें:</b>",
         "lang_selected": "✅ <b>भाषा हिंदी में बदल दी गई है।</b>",
