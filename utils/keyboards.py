@@ -76,6 +76,20 @@ def orientation_menu(language: str = "en") -> InlineKeyboardMarkup:
     ])
     return markup
 
+def help_keyboard(language: str = "en") -> InlineKeyboardMarkup:
+    """Клавиатура для помощи с кнопкой отмены"""
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text=get_text(language, "btn_cancel"),
+            callback_data="cancel_help"
+        )],
+        [InlineKeyboardButton(
+            text=get_text(language, "btn_main_menu"),
+            callback_data="main_menu"
+        )]
+    ])
+    return markup
+
 def tariff_selection(language: str = "en") -> InlineKeyboardMarkup:
     """Клавиатура выбора тарифов для покупки"""
     markup = InlineKeyboardMarkup(inline_keyboard=[

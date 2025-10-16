@@ -16,7 +16,7 @@ from yookassa import Configuration, Payment
 
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
-from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection
+from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, help_keyboard
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
 from tribute_subscription import create_subscription, get_tariff_info
 
@@ -572,7 +572,21 @@ async def callback_handler(callback: types.CallbackQuery):
         user_waiting_for_support.add(user_id)
         await callback.message.edit_text(
             get_text(user_language, "help_text"),
-            reply_markup=main_menu(user_language)
+            reply_markup=help_keyboard(user_language),
+            parse_mode="HTML"
+        )
+        await callback.answer()
+        return
+    
+    elif callback.data == "cancel_help":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        # Убираем пользователя из очереди поддержки
+        user_waiting_for_support.discard(user_id)
+        await callback.message.edit_text(
+            get_text(user_language, "choose_action"),
+            reply_markup=main_menu(user_language),
+            parse_mode="HTML"
         )
         await callback.answer()
         return
@@ -929,6 +943,7 @@ async def handle_text(message: types.Message):
         user_waiting_for_support.add(user_id)
         await message.answer(
             get_text(user_language, "help_text"),
+            reply_markup=help_keyboard(user_language),
             parse_mode="HTML"
         )
     elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:

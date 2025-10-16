@@ -24,6 +24,7 @@ LANG = {
         "orientation_vertical": "📱 Вертикальное",
         "orientation_horizontal": "🖥 Горизонтальное",
         "btn_main_menu": "🏠 Главное меню",
+        "btn_cancel": "❌ Отмена",
                 "orientation_selected": "✅ <b>Выбрана {orientation} ориентация</b>\n\n🎬 <b>Опиши сцену простыми словами:</b>\nКто в кадре, где происходит действие, что они делают, какая атмосфера и погода.\nДобавь, если нужно, детали: одежду, эмоции, свет, фон.\n\n📸 <b>Пример:</b>\n<code>Рыбаки поймали в лодку русалкоподобное чудище, рыбак в тельняшке и камуфляжных штанах, тянут ее сетью, чудище женоподобное, вырывается и шипит, съёмка на телефон, грудь покрыта плотной чешуей, склизкая, вся в тине.</code>",
         "orientation_vertical_name": "вертикальная",
         "orientation_horizontal_name": "горизонтальная",
@@ -43,7 +44,7 @@ LANG = {
         "profile": "💰 <b>Твой кабинет</b>\n\n👤 Имя: <b>{name}</b>\n📦 Тариф: <b>{plan}</b>\n🎞 Осталось видео: <b>{videos_left}</b>\n📅 Регистрация: <b>{date}</b>\n\n🔁 <b>Нужно больше видео?</b>\nВыбери подходящий тариф:\n\n🌱 <b>Пробный</b> — 3 видео за ₽390\n✨ <b>Базовый</b> — 10 видео за ₽990\n💎 <b>Максимум</b> — 30 видео за ₽2,190",
         
         # Помощь
-        "help_text": "🧭 <b>Помощь</b>\n\nОпиши свою проблему, я постараюсь помочь скоро!",
+        "help_text": "🧭 <b>Помощь</b>\n\nЕсли бот работает некорректно или кнопка не реагирует — просто напиши об этом ниже, я получу сообщение и проверю как можно скорее.\n\n⚠️ <b>Обрати внимание:</b> за результат видео я не несу ответственности — генерация выполняется на стороне нейросети и может отличаться от ожиданий. Если ролик получился не так, как хотелось, просто попробуй изменить запрос.\n\n📄 <b>Оферта:</b> https://disk.yandex.ru/i/dj2ZgY22d5MRtA\n\n(ссылка также есть в описании бота)",
         "support_sent": "✅ Сообщение отправлено. Я постараюсь ответить как можно скорее!",
         
         # Кнопки покупки тарифов
@@ -109,6 +110,7 @@ LANG = {
         "orientation_vertical": "📱 Vertical",
         "orientation_horizontal": "🖥 Horizontal",
         "btn_main_menu": "🏠 Main Menu",
+        "btn_cancel": "❌ Cancel",
                 "orientation_selected": "✅ <b>{orientation} orientation selected</b>\n\n🎬 <b>Describe the scene in simple words:</b>\nWho is in the frame, where the action takes place, what they are doing, atmosphere and weather.\nAdd details if needed: clothing, emotions, lighting, background.\n\n📸 <b>Example:</b>\n<code>Fishermen caught a mermaid-like creature in a boat, fisherman in striped shirt and camo pants pulls the net, creature is feminine, struggles and hisses, phone recording, chest covered with dense scales, slimy, covered in mud.</code>",
         "orientation_vertical_name": "vertical",
         "orientation_horizontal_name": "horizontal",
@@ -194,6 +196,7 @@ LANG = {
         "orientation_vertical": "📱 Vertical",
         "orientation_horizontal": "🖥 Horizontal",
         "btn_main_menu": "🏠 Menú Principal",
+        "btn_cancel": "❌ Cancelar",
         "orientation_selected": "✅ <b>Orientación {orientation} seleccionada</b>\n\n¡Ahora presiona <b>🎬 Crear Video</b> y describe lo que quieres filmar!",
         "orientation_vertical_name": "vertical",
         "orientation_horizontal_name": "horizontal",
@@ -279,6 +282,7 @@ LANG = {
         "orientation_vertical": "📱 عمودي",
         "orientation_horizontal": "🖥 أفقي",
         "btn_main_menu": "🏠 القائمة الرئيسية",
+        "btn_cancel": "❌ إلغاء",
         "orientation_selected": "✅ <b>تم اختيار الاتجاه {orientation}</b>\n\nالآن اضغط <b>🎬 إنشاء فيديو</b> وصف ما تريد تصويره!",
         "orientation_vertical_name": "عمودي",
         "orientation_horizontal_name": "أفقي",
@@ -364,6 +368,7 @@ LANG = {
         "orientation_vertical": "📱 खड़ा",
         "orientation_horizontal": "🖥 लेटा",
         "btn_main_menu": "🏠 मुख्य मेनू",
+        "btn_cancel": "❌ रद्द करें",
         "orientation_selected": "✅ <b>{orientation} दिशा चुनी गई</b>\n\nअब <b>🎬 वीडियो बनाएं</b> दबाएं और बताएं कि आप क्या फिल्माना चाहते हैं!",
         "orientation_vertical_name": "खड़ी",
         "orientation_horizontal_name": "लेटी",
