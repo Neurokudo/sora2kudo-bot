@@ -1747,6 +1747,10 @@ async def sora_callback(request):
             user_id = extract_user_from_param(param)
             
             if user_id:
+                # Получаем данные пользователя для языка
+                user = await get_user(user_id)
+                user_language = user.get('language', 'en') if user else 'en'
+                
                 video_urls = json.loads(result_json).get("resultUrls", [])
                 if video_urls:
                     # Удаляем сообщение "Задача отправлена в Sora 2!" если есть
@@ -1835,8 +1839,11 @@ async def sora_callback(request):
                         user_language = user.get('language', 'en') if user else 'en'
                         videos_left = user.get('videos_left', 0) if user else 0
                         
+                        # Получаем ориентацию пользователя
+                        orientation = user_waiting_for_video_orientation.get(user_id, 'vertical')
+                        
                         # Сообщение с промптом для создания нового видео
-                        orientation_name = get_text(user_language, "orientation_vertical_name")
+                        orientation_name = get_text(user_language, f"orientation_{orientation}_name")
                         instruction_text = get_text(user_language, "orientation_selected").format(orientation=orientation_name)
                         
                         # Кнопка смены ориентации (с переводом)
