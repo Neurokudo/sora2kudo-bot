@@ -916,7 +916,7 @@ async def handle_text(message: types.Message):
             text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
             await message.answer(text, reply_markup=markup, parse_mode="HTML")
     elif text in [get_text(lang, "btn_profile") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        # Удаляем предыдущее сообщение и показываем профиль БЕЗ меню
+        # Удаляем предыдущее сообщение и показываем профиль С тарифами
         try:
             await message.delete()
         except:
@@ -942,7 +942,8 @@ async def handle_text(message: types.Message):
             date=date_str
         )
         
-        await message.answer(profile_text, parse_mode="HTML")
+        # Показываем профиль С клавиатурой тарифов
+        await message.answer(profile_text, reply_markup=tariff_selection(user_language), parse_mode="HTML")
     elif text in [get_text(lang, "btn_help") for lang in ["ru", "en", "es", "ar", "hi"]]:
         # Удаляем предыдущее сообщение и показываем помощь БЕЗ меню
         try:
