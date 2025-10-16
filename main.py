@@ -384,6 +384,8 @@ async def create_sora_video(description: str, orientation: str, user_id: int):
 user_waiting_for_support = set()
 user_waiting_for_video_orientation = {}
 user_video_requests = {}  # {user_id: {'description': str, 'orientation': str}}
+user_prompt_messages = {}  # {user_id: message_id} - сообщения с промптом
+user_confirmation_messages = {}  # {user_id: message_id} - сообщения подтверждения
 
 # Состояния для системы примеров
 user_example_category = {}  # {user_id: category_name}
@@ -656,13 +658,15 @@ async def callback_handler(callback: types.CallbackQuery):
             await handle_video_description_from_example(callback, description)
         else:
             # Обычный выбор ориентации
-            await callback.message.edit_text(
+            prompt_msg = await callback.message.edit_text(
                 get_text(
                     user_language, 
                     "orientation_selected",
                     orientation=get_text(user_language, "orientation_vertical_name")
                 )
             )
+            # Сохраняем ID сообщения промпта
+            user_prompt_messages[user_id] = prompt_msg.message_id
     elif callback.data == "orientation_horizontal":
         user_waiting_for_video_orientation[user_id] = "horizontal"
         user = await get_user(user_id)
@@ -676,13 +680,15 @@ async def callback_handler(callback: types.CallbackQuery):
             await handle_video_description_from_example(callback, description)
         else:
             # Обычный выбор ориентации
-            await callback.message.edit_text(
+            prompt_msg = await callback.message.edit_text(
                 get_text(
                     user_language,
                     "orientation_selected",
                     orientation=get_text(user_language, "orientation_horizontal_name")
                 )
             )
+            # Сохраняем ID сообщения промпта
+            user_prompt_messages[user_id] = prompt_msg.message_id
     
     # Обработка смены ориентации после создания видео
     elif callback.data == "change_orientation":
@@ -864,11 +870,13 @@ async def callback_handler(callback: types.CallbackQuery):
         
         # Показываем промпт для ввода нового запроса
         orientation_name = get_text(user_language, "orientation_vertical_name")
-        await callback.message.edit_text(
+        prompt_msg = await callback.message.edit_text(
             get_text(user_language, "orientation_selected").format(orientation=orientation_name),
             reply_markup=orientation_menu(user_language),
             parse_mode="HTML"
         )
+        # Сохраняем ID сообщения промпта
+        user_prompt_messages[user_id] = prompt_msg.message_id
         await callback.answer()
         return
     
@@ -879,6 +887,10 @@ async def callback_handler(callback: types.CallbackQuery):
         # Удаляем данные из состояния
         if user_id in user_video_requests:
             del user_video_requests[user_id]
+        
+        # Удаляем сообщение подтверждения
+        if user_id in user_confirmation_messages:
+            del user_confirmation_messages[user_id]
         
         # Возвращаемся в главное меню
         await callback.message.edit_text(
@@ -1191,11 +1203,13 @@ async def handle_video_description(message: types.Message, user_language: str):
         videos_left=user['videos_left']
     )
     
-    await message.answer(
+    confirmation_msg = await message.answer(
         confirmation_text,
         reply_markup=video_confirmation_keyboard(user_language),
         parse_mode="HTML"
     )
+    # Сохраняем ID сообщения подтверждения
+    user_confirmation_messages[user_id] = confirmation_msg.message_id
 
 async def create_video(message: types.Message, user_id: int, description: str, orientation: str, user_language: str):
     """Создание видео после подтверждения"""
@@ -1227,9 +1241,20 @@ async def create_video(message: types.Message, user_id: int, description: str, o
         )
         
         if task_id and status == "success":
+            # Удаляем предыдущие сообщения (промпт и подтверждение)
+            try:
+                if user_id in user_prompt_messages:
+                    await bot.delete_message(user_id, user_prompt_messages[user_id])
+                    del user_prompt_messages[user_id]
+                if user_id in user_confirmation_messages:
+                    await bot.delete_message(user_id, user_confirmation_messages[user_id])
+                    del user_confirmation_messages[user_id]
+            except Exception as e:
+                logging.warning(f"⚠️ Failed to delete previous messages for user {user_id}: {e}")
+            
             # Успешно отправлено в KIE.AI
             task_msg = await creating_msg.edit_text(
-                f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{description}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
+                f"✨ <b>Ваше видео создается!</b>\n\n🎬 <b>Описание:</b> {description}\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n\n⏳ <b>Ожидайте уведомление когда видео будет готово, создание требует около 2-х минут</b>\n\n📼 <b>Видео будет отправлено в этот чат автоматически</b>",
                 parse_mode="HTML"
             )
             # Сохраняем ID сообщения для последующего удаления
