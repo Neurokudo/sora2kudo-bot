@@ -1200,12 +1200,6 @@ async def handle_video_description(message: types.Message, user_language: str):
         'orientation': orientation
     }
     
-    # Удаляем сообщение пользователя
-    try:
-        await message.delete()
-    except:
-        pass
-    
     # Показываем подтверждение
     orientation_text = get_text(user_language, f"orientation_{orientation}_name")
     confirmation_text = get_text(
@@ -1758,6 +1752,7 @@ async def sora_callback(request):
                     # Удаляем сообщение "Задача отправлена в Sora 2!" если есть
                     if user_id in user_task_messages:
                         try:
+                            logging.info(f"🗑️ Deleting task message {user_task_messages[user_id]} for user {user_id}")
                             await bot.delete_message(user_id, user_task_messages[user_id])
                             del user_task_messages[user_id]
                         except Exception as e:
@@ -1765,6 +1760,7 @@ async def sora_callback(request):
                     
                     # Отправляем видео пользователю
                     try:
+                        logging.info(f"📹 Sending video to user {user_id}: {video_urls[0]}")
                         # Пробуем отправить видео напрямую по URL
                         video_msg = await bot.send_video(
                             user_id, 
@@ -1775,6 +1771,7 @@ async def sora_callback(request):
                         )
                         # Сохраняем ID сообщения с видео
                         user_video_messages[user_id] = video_msg.message_id
+                        logging.info(f"✅ Video sent successfully to user {user_id}, message_id: {video_msg.message_id}")
                         
                         logging.info(f"✅ Video sent directly to user {user_id}: {video_urls[0]}")
                         
