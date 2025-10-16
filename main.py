@@ -430,7 +430,8 @@ async def cmd_help_command(message: types.Message):
     user_waiting_for_support.add(user_id)
     await message.answer(
         get_text(user_language, "help_text"),
-        reply_markup=main_menu(user_language)
+        reply_markup=main_menu(user_language),
+        disable_web_page_preview=True
     )
 
 # === /examples ===
@@ -573,7 +574,8 @@ async def callback_handler(callback: types.CallbackQuery):
         await callback.message.edit_text(
             get_text(user_language, "help_text"),
             reply_markup=help_keyboard(user_language),
-            parse_mode="HTML"
+            parse_mode="HTML",
+            disable_web_page_preview=True
         )
         await callback.answer()
         return
@@ -955,7 +957,8 @@ async def handle_text(message: types.Message):
         await message.answer(
             get_text(user_language, "help_text"),
             reply_markup=help_keyboard(user_language),
-            parse_mode="HTML"
+            parse_mode="HTML",
+            disable_web_page_preview=True
         )
     elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
         # Удаляем предыдущее сообщение и показываем выбор языка БЕЗ меню
@@ -1195,7 +1198,8 @@ async def cmd_help(message: types.Message, user_language: str):
     await message.answer(
         get_text(user_language, "help_text"),
         reply_markup=main_menu(user_language),
-        parse_mode="HTML"
+        parse_mode="HTML",
+        disable_web_page_preview=True
     )
 
 async def handle_language_selection(message: types.Message):
