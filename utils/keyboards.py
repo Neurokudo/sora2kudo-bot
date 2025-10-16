@@ -76,6 +76,28 @@ def orientation_menu(language: str = "en") -> InlineKeyboardMarkup:
     ])
     return markup
 
+def video_confirmation_keyboard(language: str = "en") -> InlineKeyboardMarkup:
+    """Клавиатура подтверждения создания видео"""
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_create_confirm"),
+                callback_data="confirm_create_video"
+            ),
+            InlineKeyboardButton(
+                text=get_text(language, "btn_edit_request"),
+                callback_data="edit_video_request"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_cancel_request"),
+                callback_data="cancel_video_request"
+            )
+        ]
+    ])
+    return markup
+
 def support_sent_keyboard(language: str = "en") -> InlineKeyboardMarkup:
     """Клавиатура после отправки сообщения в поддержку"""
     markup = InlineKeyboardMarkup(inline_keyboard=[

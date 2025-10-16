@@ -16,7 +16,7 @@ from yookassa import Configuration, Payment
 
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
-from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, help_keyboard, support_sent_keyboard
+from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, help_keyboard, support_sent_keyboard, video_confirmation_keyboard
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
 from tribute_subscription import create_subscription, get_tariff_info
 
@@ -383,6 +383,7 @@ async def create_sora_video(description: str, orientation: str, user_id: int):
 # === GLOBAL STATES ===
 user_waiting_for_support = set()
 user_waiting_for_video_orientation = {}
+user_video_requests = {}  # {user_id: {'description': str, 'orientation': str}}
 
 # Состояния для системы примеров
 user_example_category = {}  # {user_id: category_name}
@@ -829,6 +830,65 @@ async def callback_handler(callback: types.CallbackQuery):
                     reply_markup=orientation_menu(user_language)
                 )
     
+    # Обработка кнопок подтверждения создания видео
+    elif callback.data == "confirm_create_video":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        # Получаем данные из состояния пользователя
+        if user_id in user_video_requests:
+            video_data = user_video_requests[user_id]
+            description = video_data['description']
+            orientation = video_data['orientation']
+            
+            # Удаляем данные из состояния
+            del user_video_requests[user_id]
+            
+            # Начинаем создание видео
+            await create_video(callback.message, user_id, description, orientation, user_language)
+        else:
+            await callback.message.edit_text(
+                get_text(user_language, "error_getting_data"),
+                reply_markup=main_menu(user_language)
+            )
+        await callback.answer()
+        return
+    
+    elif callback.data == "edit_video_request":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        # Удаляем данные из состояния
+        if user_id in user_video_requests:
+            del user_video_requests[user_id]
+        
+        # Показываем промпт для ввода нового запроса
+        orientation_name = get_text(user_language, "orientation_vertical_name")
+        await callback.message.edit_text(
+            get_text(user_language, "orientation_selected").format(orientation=orientation_name),
+            reply_markup=orientation_menu(user_language),
+            parse_mode="HTML"
+        )
+        await callback.answer()
+        return
+    
+    elif callback.data == "cancel_video_request":
+        user = await get_user(user_id)
+        user_language = user.get('language', 'en') if user else 'en'
+        
+        # Удаляем данные из состояния
+        if user_id in user_video_requests:
+            del user_video_requests[user_id]
+        
+        # Возвращаемся в главное меню
+        await callback.message.edit_text(
+            get_text(user_language, "choose_action"),
+            reply_markup=main_menu(user_language),
+            parse_mode="HTML"
+        )
+        await callback.answer()
+        return
+    
     await callback.answer()
 
 # === DEFAULT HANDLER ===
@@ -1088,12 +1148,12 @@ async def handle_profile(message: types.Message, user_language: str):
         await message.answer(fallback_text, parse_mode="HTML")
 
 async def handle_video_description(message: types.Message, user_language: str):
-    """Обработка описания видео"""
+    """Обработка описания видео - показывает подтверждение"""
     user_id = message.from_user.id
     text = message.text.strip()
     orientation = user_waiting_for_video_orientation.get(user_id)
     
-    logging.info(f"🎬 Starting video creation for user {user_id}: {text[:50]}... (orientation: {orientation})")
+    logging.info(f"🎬 User {user_id} sent video description: {text[:50]}... (orientation: {orientation})")
     
     # Получаем данные пользователя
     user = await get_user(user_id)
@@ -1109,7 +1169,43 @@ async def handle_video_description(message: types.Message, user_language: str):
         )
         return
     
+    # Сохраняем запрос пользователя для подтверждения
+    user_video_requests[user_id] = {
+        'description': text,
+        'orientation': orientation
+    }
+    
+    # Удаляем сообщение пользователя
+    try:
+        await message.delete()
+    except:
+        pass
+    
+    # Показываем подтверждение
     orientation_text = get_text(user_language, f"orientation_{orientation}_name")
+    confirmation_text = get_text(
+        user_language,
+        "video_confirmation",
+        description=text,
+        orientation=orientation_text,
+        videos_left=user['videos_left']
+    )
+    
+    await message.answer(
+        confirmation_text,
+        reply_markup=video_confirmation_keyboard(user_language),
+        parse_mode="HTML"
+    )
+
+async def create_video(message: types.Message, user_id: int, description: str, orientation: str, user_language: str):
+    """Создание видео после подтверждения"""
+    logging.info(f"🎬 Starting video creation for user {user_id}: {description[:50]}... (orientation: {orientation})")
+    
+    # Получаем данные пользователя
+    user = await get_user(user_id)
+    if not user:
+        await message.answer(get_text(user_language, "error_restart"))
+        return
     
     # Сразу отправляем сообщение о создании видео
     creating_msg = await message.answer(
@@ -1125,7 +1221,7 @@ async def handle_video_description(message: types.Message, user_language: str):
         
         # Создаем задачу через KIE.AI Sora-2 API
         task_id, status = await create_sora_task(
-            prompt=text, 
+            prompt=description, 
             aspect_ratio=aspect_ratio, 
             user_id=user_id
         )
@@ -1133,12 +1229,11 @@ async def handle_video_description(message: types.Message, user_language: str):
         if task_id and status == "success":
             # Успешно отправлено в KIE.AI
             task_msg = await creating_msg.edit_text(
-                f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{text}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
+                f"✨ <b>Задача отправлена в Sora 2!</b>\n\n🎬 <b>Описание:</b> <i>{description}</i>\n\n🆔 <b>ID задачи:</b> <code>{task_id}</code>\n⏳ <b>Ожидайте уведомление</b> когда видео будет готово\n\n📹 <b>Видео будет отправлено в этот чат автоматически</b>",
                 parse_mode="HTML"
             )
             # Сохраняем ID сообщения для последующего удаления
             user_task_messages[user_id] = task_msg.message_id
-            # Меню уже показано в предыдущем сообщении, не дублируем
             logging.info(f"✅ Sora task created for user {user_id}: {task_id}")
         else:
             # Ошибка или demo режим
@@ -1149,7 +1244,6 @@ async def handle_video_description(message: types.Message, user_language: str):
                     "🎬 <b>Демо режим</b>\n\n⚠️ KIE.AI API не настроен\n🔄 В реальной версии здесь будет ваше видео\n\n" +
                     get_text(user_language, "video_ready", videos_left=user['videos_left'] - 1)
                 )
-                # Меню уже показано в предыдущем сообщении, не дублируем
             else:
                 # Ошибка создания - возвращаем видео обратно
                 await update_user_videos(user_id, user['videos_left'])
@@ -1157,10 +1251,9 @@ async def handle_video_description(message: types.Message, user_language: str):
                 await creating_msg.edit_text(
                     get_text(user_language, "video_error", videos_left=user['videos_left'])
                 )
-                # Меню уже показано в предыдущем сообщении, не дублируем
                 
     except Exception as e:
-        logging.error(f"❌ Critical error in handle_video_description: {e}")
+        logging.error(f"❌ Critical error in create_video: {e}")
         
         # Возвращаем видео обратно при любой критической ошибке
         try:
@@ -1174,7 +1267,6 @@ async def handle_video_description(message: types.Message, user_language: str):
             await creating_msg.edit_text(
                 get_text(user_language, "video_error", videos_left=user['videos_left'])
             )
-            # Меню уже показано в предыдущем сообщении, не дублируем
         except Exception as msg_error:
             logging.error(f"❌ Failed to send error message: {msg_error}")
             # Последняя попытка - простое сообщение
@@ -1185,9 +1277,7 @@ async def handle_video_description(message: types.Message, user_language: str):
             except:
                 logging.error("❌ Complete failure to notify user about error")
     
-    # Очищаем состояние
-    if user_id in user_waiting_for_video_orientation:
-        del user_waiting_for_video_orientation[user_id]
+    # НЕ очищаем состояние - пользователь может создавать новые видео
 
 async def cmd_help(message: types.Message, user_language: str):
     """Обработка команды /help"""
@@ -1701,11 +1791,9 @@ async def sora_callback(request):
                         user_language = user.get('language', 'en') if user else 'en'
                         videos_left = user.get('videos_left', 0) if user else 0
                         
-                        # Сообщение с инструкцией (с переводами)
-                        instruction_text = (
-                            f"{get_text(user_language, 'video_success_title')}\n\n"
-                            f"{get_text(user_language, 'video_success_message', videos_left=videos_left)}"
-                        )
+                        # Сообщение с промптом для создания нового видео
+                        orientation_name = get_text(user_language, "orientation_vertical_name")
+                        instruction_text = get_text(user_language, "orientation_selected").format(orientation=orientation_name)
                         
                         # Кнопка смены ориентации (с переводом)
                         orientation_keyboard = InlineKeyboardMarkup(inline_keyboard=[
