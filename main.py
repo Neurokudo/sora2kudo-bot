@@ -862,29 +862,67 @@ async def handle_text(message: types.Message):
     
     # Обработка старых текстовых кнопок (для совместимости)
     if text in [get_text(lang, "btn_create_video") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        # Показываем выбор ориентации через inline
+        # Удаляем предыдущее сообщение и показываем выбор ориентации
+        try:
+            await message.delete()
+        except:
+            pass
         await message.answer(
             get_text(user_language, "choose_orientation"),
             reply_markup=orientation_menu(user_language),
             parse_mode="HTML"
         )
     elif text in [get_text(lang, "btn_examples") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        # Удаляем предыдущее сообщение и показываем примеры
+        try:
+            await message.delete()
+        except:
+            pass
         await handle_examples(message, user_language)
     elif text in [get_text(lang, "btn_profile") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        # Удаляем предыдущее сообщение и показываем профиль
+        try:
+            await message.delete()
+        except:
+            pass
         await handle_profile(message, user_language)
     elif text in [get_text(lang, "btn_help") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        # Удаляем предыдущее сообщение и показываем помощь
+        try:
+            await message.delete()
+        except:
+            pass
         await cmd_help(message, user_language)
     elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        # Удаляем предыдущее сообщение и показываем выбор языка
+        try:
+            await message.delete()
+        except:
+            pass
         await handle_language_selection(message)
     elif text in [get_text(lang, "btn_buy_foreign") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        # Удаляем предыдущее сообщение и показываем иностранные тарифы
+        try:
+            await message.delete()
+        except:
+            pass
         await send_foreign_tariffs(message, user_language)
     elif text in [get_text(lang, "btn_buy_tariff") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        # Удаляем предыдущее сообщение и показываем тарифы
+        try:
+            await message.delete()
+        except:
+            pass
         await handle_buy_tariff(message, user_language)
     # Если пользователь выбрал ориентацию, то это описание для видео
     elif user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
         await handle_video_description(message, user_language)
     else:
-        # Показываем inline меню вместо reply клавиатуры
+        # Удаляем предыдущее сообщение и показываем inline меню
+        try:
+            await message.delete()
+        except:
+            pass
         await message.answer(
             get_text(user_language, "use_buttons"),
             reply_markup=main_menu(user_language),
