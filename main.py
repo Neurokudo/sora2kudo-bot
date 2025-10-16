@@ -860,13 +860,35 @@ async def handle_text(message: types.Message):
     user = await get_user(user_id)
     user_language = user.get('language', 'en') if user else 'en'
     
+    # Обработка старых текстовых кнопок (для совместимости)
+    if text in [get_text(lang, "btn_create_video") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        # Показываем выбор ориентации через inline
+        await message.answer(
+            get_text(user_language, "choose_orientation"),
+            reply_markup=orientation_menu(user_language),
+            parse_mode="HTML"
+        )
+    elif text in [get_text(lang, "btn_examples") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_examples(message, user_language)
+    elif text in [get_text(lang, "btn_profile") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_profile(message, user_language)
+    elif text in [get_text(lang, "btn_help") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await cmd_help(message, user_language)
+    elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_language_selection(message)
+    elif text in [get_text(lang, "btn_buy_foreign") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await send_foreign_tariffs(message, user_language)
+    elif text in [get_text(lang, "btn_buy_tariff") for lang in ["ru", "en", "es", "ar", "hi"]]:
+        await handle_buy_tariff(message, user_language)
     # Если пользователь выбрал ориентацию, то это описание для видео
-    if user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
+    elif user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
         await handle_video_description(message, user_language)
     else:
+        # Показываем inline меню вместо reply клавиатуры
         await message.answer(
             get_text(user_language, "use_buttons"),
-            reply_markup=main_menu(user_language)
+            reply_markup=main_menu(user_language),
+            parse_mode="HTML"
         )
 
 async def handle_examples(message: types.Message, user_language: str):
@@ -1584,6 +1606,10 @@ async def sora_callback(request):
                             [InlineKeyboardButton(
                                 text=get_text(user_language, 'btn_change_orientation'),
                                 callback_data="change_orientation"
+                            )],
+                            [InlineKeyboardButton(
+                                text=get_text(user_language, "btn_main_menu"),
+                                callback_data="main_menu"
                             )]
                         ])
                         
