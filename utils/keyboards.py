@@ -98,6 +98,22 @@ def video_confirmation_keyboard(language: str = "en") -> InlineKeyboardMarkup:
     ])
     return markup
 
+def video_ready_keyboard(language: str = "en") -> InlineKeyboardMarkup:
+    """Клавиатура после создания видео"""
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_main_menu"),
+                callback_data="main_menu"
+            ),
+            InlineKeyboardButton(
+                text=get_text(language, "btn_examples"),
+                callback_data="menu_examples"
+            )
+        ]
+    ])
+    return markup
+
 def support_sent_keyboard(language: str = "en") -> InlineKeyboardMarkup:
     """Клавиатура после отправки сообщения в поддержку"""
     markup = InlineKeyboardMarkup(inline_keyboard=[

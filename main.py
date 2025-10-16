@@ -16,7 +16,7 @@ from yookassa import Configuration, Payment
 
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
-from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, help_keyboard, support_sent_keyboard, video_confirmation_keyboard
+from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, help_keyboard, support_sent_keyboard, video_confirmation_keyboard, video_ready_keyboard
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
 from tribute_subscription import create_subscription, get_tariff_info
 
@@ -386,6 +386,7 @@ user_waiting_for_video_orientation = {}
 user_video_requests = {}  # {user_id: {'description': str, 'orientation': str}}
 user_prompt_messages = {}  # {user_id: message_id} - сообщения с промптом
 user_confirmation_messages = {}  # {user_id: message_id} - сообщения подтверждения
+user_video_messages = {}  # {user_id: message_id} - сообщения с видео и кнопками
 
 # Состояния для системы примеров
 user_example_category = {}  # {user_id: category_name}
@@ -1059,6 +1060,18 @@ async def handle_text(message: types.Message):
         await handle_buy_tariff(message, user_language)
     # Если пользователь выбрал ориентацию, то это описание для видео
     elif user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
+        # Удаляем кнопки под видео если они есть
+        try:
+            if user_id in user_video_messages:
+                await bot.edit_message_reply_markup(
+                    user_id, 
+                    user_video_messages[user_id], 
+                    reply_markup=None
+                )
+                del user_video_messages[user_id]
+        except Exception as e:
+            logging.warning(f"⚠️ Failed to remove video buttons for user {user_id}: {e}")
+        
         await handle_video_description(message, user_language)
     else:
         # Если пользователь написал что-то непонятное, показываем главное меню
@@ -1753,12 +1766,15 @@ async def sora_callback(request):
                     # Отправляем видео пользователю
                     try:
                         # Пробуем отправить видео напрямую по URL
-                        await bot.send_video(
+                        video_msg = await bot.send_video(
                             user_id, 
                             video=video_urls[0],
-                            caption="🎬 Видео создано через Sora 2",
+                            caption="✨ Видео готово! Чтобы создать новое — просто отправьте запрос в чат.",
+                            reply_markup=video_ready_keyboard(user_language),
                             parse_mode="HTML"
                         )
+                        # Сохраняем ID сообщения с видео
+                        user_video_messages[user_id] = video_msg.message_id
                         
                         logging.info(f"✅ Video sent directly to user {user_id}: {video_urls[0]}")
                         
@@ -1781,12 +1797,15 @@ async def sora_callback(request):
                                         
                                         # Отправляем как видео-файл
                                         with open(temp_file_path, 'rb') as video_file:
-                                            await bot.send_video(
+                                            video_msg = await bot.send_video(
                                                 user_id,
                                                 video=video_file,
-                                                caption="🎬 Видео создано через Sora 2",
+                                                caption="✨ Видео готово! Чтобы создать новое — просто отправьте запрос в чат.",
+                                                reply_markup=video_ready_keyboard(user_language),
                                                 parse_mode="HTML"
                                             )
+                                            # Сохраняем ID сообщения с видео
+                                            user_video_messages[user_id] = video_msg.message_id
                                         
                                         # Удаляем временный файл
                                         os.unlink(temp_file_path)
@@ -1800,11 +1819,14 @@ async def sora_callback(request):
                             
                             # Fallback - отправляем ссылку
                             try:
-                                await bot.send_message(
+                                video_msg = await bot.send_message(
                                     user_id, 
-                                    f"🎬 Видео создано через Sora 2\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>",
+                                    f"✨ Видео готово! Чтобы создать новое — просто отправьте запрос в чат.\n📹 <a href='{video_urls[0]}'>Смотреть видео</a>",
+                                    reply_markup=video_ready_keyboard(user_language),
                                     parse_mode="HTML"
                                 )
+                                # Сохраняем ID сообщения с видео
+                                user_video_messages[user_id] = video_msg.message_id
                                 logging.info(f"✅ Fallback link sent to user {user_id}")
                             except Exception as fallback_error:
                                 logging.error(f"❌ Fallback error: {fallback_error}")
