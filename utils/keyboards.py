@@ -76,6 +76,24 @@ def orientation_menu(language: str = "en") -> InlineKeyboardMarkup:
     ])
     return markup
 
+def support_sent_keyboard(language: str = "en") -> InlineKeyboardMarkup:
+    """Клавиатура после отправки сообщения в поддержку"""
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_create_video"),
+                callback_data="menu_create_video"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text=get_text(language, "btn_main_menu"),
+                callback_data="main_menu"
+            )
+        ]
+    ])
+    return markup
+
 def help_keyboard(language: str = "en") -> InlineKeyboardMarkup:
     """Клавиатура для помощи с кнопкой отмены"""
     markup = InlineKeyboardMarkup(inline_keyboard=[

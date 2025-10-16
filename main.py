@@ -16,7 +16,7 @@ from yookassa import Configuration, Payment
 
 # Импорт модулей для мультиязычности
 from translations import get_text, is_rtl_language
-from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, help_keyboard
+from utils.keyboards import main_menu, language_selection, orientation_menu, tariff_selection, help_keyboard, support_sent_keyboard
 from examples import EXAMPLES, get_categories, get_examples_from_category, get_example, get_category_name
 from tribute_subscription import create_subscription, get_tariff_info
 
@@ -861,7 +861,16 @@ async def handle_text(message: types.Message):
             result = await bot.send_message(support_chat_id, chat_text, parse_mode="HTML")
             logging.info(f"✅ Support message sent successfully to {support_chat_id}")
             logging.info(f"✅ Message ID: {result.message_id}")
-            await message.answer("✅ Сообщение отправлено. Я постараюсь ответить как можно скорее!")
+            
+            # Получаем язык пользователя для кнопок
+            user = await get_user(user_id)
+            user_language = user.get('language', 'ru') if user else 'ru'
+            
+            await message.answer(
+                "✅ Сообщение отправлено. Я постараюсь ответить как можно скорее!",
+                reply_markup=support_sent_keyboard(user_language),
+                parse_mode="HTML"
+            )
         except Exception as e:
             logging.error(f"❌ Ошибка при отправке в поддержку: {e}")
             logging.error(f"❌ SUPPORT_CHAT_ID: {SUPPORT_CHAT_ID}, Type: {type(SUPPORT_CHAT_ID)}")
