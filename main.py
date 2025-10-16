@@ -626,7 +626,8 @@ async def callback_handler(callback: types.CallbackQuery):
         )
         
         await callback.message.answer(
-            welcome_text
+            welcome_text,
+            disable_web_page_preview=True
         )
         
         # Показываем "Выбери действие:" с главным меню
