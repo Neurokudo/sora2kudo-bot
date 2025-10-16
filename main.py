@@ -862,7 +862,7 @@ async def handle_text(message: types.Message):
     
     # Обработка старых текстовых кнопок (для совместимости)
     if text in [get_text(lang, "btn_create_video") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        # Удаляем предыдущее сообщение и показываем выбор ориентации
+        # Удаляем предыдущее сообщение и показываем выбор ориентации БЕЗ меню
         try:
             await message.delete()
         except:
@@ -873,33 +873,75 @@ async def handle_text(message: types.Message):
             parse_mode="HTML"
         )
     elif text in [get_text(lang, "btn_examples") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        # Удаляем предыдущее сообщение и показываем примеры
+        # Удаляем предыдущее сообщение и показываем примеры БЕЗ меню
         try:
             await message.delete()
         except:
             pass
-        await handle_examples(message, user_language)
+        user = await get_user(user_id)
+        
+        # Проверяем, есть ли у пользователя оплаченная подписка
+        if not user or user.get('plan_name') == 'Без тарифа' or user.get('videos_left', 0) <= 0:
+            # Показываем сообщение о необходимости подписки БЕЗ меню
+            await message.answer(
+                get_text(user_language, "examples_subscription_required"),
+                parse_mode="HTML"
+            )
+        else:
+            # Если подписка есть, показываем примеры БЕЗ меню
+            markup = build_categories_keyboard(0, user_language)
+            text = "🎬 <b>Готовые идеи для создания вирусных видео!</b>\n\n<b>Как использовать:</b>\n1️⃣ Выбери понравившийся пример\n2️⃣ Скопируй текст\n3️⃣ Вставь в бот и создай видео!\nИли измени под свою идею 💡\n\n<b>Кнопки с разделами и примерами 👇</b>"
+            await message.answer(text, reply_markup=markup, parse_mode="HTML")
     elif text in [get_text(lang, "btn_profile") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        # Удаляем предыдущее сообщение и показываем профиль
+        # Удаляем предыдущее сообщение и показываем профиль БЕЗ меню
         try:
             await message.delete()
         except:
             pass
-        await handle_profile(message, user_language)
+        user = await get_user(user_id)
+        if not user:
+            await message.answer(get_text(user_language, "error_getting_data"), parse_mode="HTML")
+            return
+        
+        safe_name = user.get('first_name') or getattr(message.from_user, 'first_name', None) or "Not specified"
+        
+        try:
+            date_str = user['created_at'].strftime('%d.%m.%Y') if user.get('created_at') else "Unknown"
+        except:
+            date_str = "Unknown"
+        
+        profile_text = get_text(
+            user_language,
+            "profile",
+            name=safe_name,
+            plan=user['plan_name'],
+            videos_left=user['videos_left'],
+            date=date_str
+        )
+        
+        await message.answer(profile_text, parse_mode="HTML")
     elif text in [get_text(lang, "btn_help") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        # Удаляем предыдущее сообщение и показываем помощь
+        # Удаляем предыдущее сообщение и показываем помощь БЕЗ меню
         try:
             await message.delete()
         except:
             pass
-        await cmd_help(message, user_language)
+        user_waiting_for_support.add(user_id)
+        await message.answer(
+            get_text(user_language, "help_text"),
+            parse_mode="HTML"
+        )
     elif text in [get_text(lang, "btn_language") for lang in ["ru", "en", "es", "ar", "hi"]]:
-        # Удаляем предыдущее сообщение и показываем выбор языка
+        # Удаляем предыдущее сообщение и показываем выбор языка БЕЗ меню
         try:
             await message.delete()
         except:
             pass
-        await handle_language_selection(message)
+        await message.answer(
+            get_text('en', "choose_language"),
+            reply_markup=language_selection(),
+            parse_mode="HTML"
+        )
     elif text in [get_text(lang, "btn_buy_foreign") for lang in ["ru", "en", "es", "ar", "hi"]]:
         # Удаляем предыдущее сообщение и показываем иностранные тарифы
         try:
@@ -918,11 +960,7 @@ async def handle_text(message: types.Message):
     elif user_id in user_waiting_for_video_orientation and user_waiting_for_video_orientation[user_id]:
         await handle_video_description(message, user_language)
     else:
-        # Удаляем предыдущее сообщение и показываем inline меню
-        try:
-            await message.delete()
-        except:
-            pass
+        # Если пользователь написал что-то непонятное, показываем главное меню
         await message.answer(
             get_text(user_language, "use_buttons"),
             reply_markup=main_menu(user_language),
